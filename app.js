@@ -66,16 +66,30 @@ function parseCSV(text){
 }
 function importRows(rows){
  if(rows.length<2)throw new Error('The CSV has no product rows.');
- const headers=rows[0].map(x=>x.trim()),lower=headers.map(x=>x.toLowerCase());
- let ni=lower.findIndex(x=>/product|item|dish|menu|name/.test(x));if(ni<0)ni=0;
- const ci=lower.findIndex(x=>/category|section|group/.test(x));
- const cols=headers.map((h,i)=>({h:h.trim(),i})).filter(o=>iIsAllergen(o.h));
- const records=rows.slice(1).map(r=>{const name=(r[ni]||'').trim();if(!name)return null;let allergens=[];
-   if(cols.length)allergens=cols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
-   else{const ai=lower.findIndex(x=>x==='allergens'||x==='allergen');if(ai>=0)allergens=(r[ai]||'').split(/[;|,]/).map(canonical)}
-   return{name,category:ci>=0?(r[ci]||'').trim():'',allergens:normalized(allergens),active:true,created_by:currentUser.id,updated_by:currentUser.id}
+ const cleaned=rows.map(r=>r.map(v=>String(v||'').replace(/^\uFEFF/,'').trim()));
+ const scoreRow=r=>r.reduce((n,v)=>n+(iIsAllergen(v)?3:/product|item|dish|menu|food|drink|name|category|section/i.test(v)?2:0),0);
+ let hi=0,best=-1;
+ cleaned.slice(0,25).forEach((r,i)=>{const score=scoreRow(r);if(score>best){best=score;hi=i}});
+ const headers=cleaned[hi],lower=headers.map(x=>x.toLowerCase());
+ const allergenCols=headers.map((h,i)=>({h,i})).filter(o=>o.h&&iIsAllergen(o.h));
+ const categoryIndex=lower.findIndex(x=>/category|section|group/.test(x));
+ let nameIndex=lower.findIndex(x=>/product|item|dish|menu item|food|drink|name/.test(x));
+ if(nameIndex<0){
+   nameIndex=headers.findIndex((h,i)=>h&&!allergenCols.some(a=>a.i===i)&&i!==categoryIndex);
+ }
+ if(nameIndex<0)nameIndex=0;
+ const singleAllergenIndex=lower.findIndex(x=>x==='allergens'||x==='allergen');
+ const nonProducts=/^(allergen|allergens|product|products|item|items|menu|category|section|key|yes|no)$/i;
+ const records=cleaned.slice(hi+1).map(r=>{
+   const name=(r[nameIndex]||'').trim();
+   if(!name||nonProducts.test(name))return null;
+   let allergens=[];
+   if(allergenCols.length)allergens=allergenCols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
+   else if(singleAllergenIndex>=0)allergens=(r[singleAllergenIndex]||'').split(/[;|,]/).map(canonical);
+   return{name,category:categoryIndex>=0?(r[categoryIndex]||'').trim():'',allergens:normalized(allergens),active:true,created_by:currentUser.id,updated_by:currentUser.id};
  }).filter(Boolean);
- if(!records.length)throw new Error('No product names were found.');return records;
+ if(!records.length)throw new Error('No product names were found. Please check the CSV has a product or item column.');
+ return records;
 }
 
 async function importCSV(){
