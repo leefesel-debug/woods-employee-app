@@ -72,6 +72,22 @@ function render(){
  $('#grid').innerHTML=shown.map(x=>`<article class="card"><div class="card-head"><div><h2>${safe(x.name)}</h2><div class="category">${safe(x.category||'Uncategorised')}</div></div></div><div class="badges">${x.allergens?.length?x.allergens.map(y=>`<span class="badge">${safe(y)}</span>`).join(''):'<span class="badge none">No listed allergens</span>'}</div>${x.notes?`<p class="notes">${safe(x.notes)}</p>`:''}<div class="actions"><button class="mini" onclick="editItem('${x.id}')">Edit</button><button class="mini danger" onclick="archiveItem('${x.id}')">Archive</button></div></article>`).join('');
 }
 
+async function readCSVFile(file){
+ const buffer=await file.arrayBuffer();
+ const bytes=new Uint8Array(buffer);
+ let encoding='utf-8';
+ if(bytes[0]===0xFF&&bytes[1]===0xFE)encoding='utf-16le';
+ else if(bytes[0]===0xFE&&bytes[1]===0xFF)encoding='utf-16be';
+ else{
+  const sample=bytes.slice(0,Math.min(bytes.length,2000));
+  let evenNulls=0,oddNulls=0;
+  for(let i=0;i<sample.length;i++)if(sample[i]===0)(i%2?oddNulls++:evenNulls++);
+  if(oddNulls>sample.length*.15)encoding='utf-16le';
+  else if(evenNulls>sample.length*.15)encoding='utf-16be';
+ }
+ return new TextDecoder(encoding).decode(buffer).replace(/^\uFEFF/,'');
+}
+
 function parseCSV(text){
  function parseWith(delimiter){
   const rows=[];let row=[],cell='',quote=false;
@@ -145,7 +161,7 @@ function importRows(rows){
 async function importCSV(){
  const file=$('#csvFile').files[0];if(!file)return showMessage('Choose the CSV file first.');
  try{
-  const records=importRows(parseCSV(await file.text()));
+  const records=importRows(parseCSV(await readCSVFile(file)));
   const sample=records.slice(0,3).map(x=>x.name+(x.allergens.length?' — '+x.allergens.join(', '):' — no allergens')).join('\n');
   if(!confirm('Import '+records.length+' products?\n\nFirst rows detected:\n'+sample+'\n\nThis will archive and replace the current list.'))return;
   setStatus('Importing…');
