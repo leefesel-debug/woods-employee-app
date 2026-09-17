@@ -1,127 +1,39 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#18352f">
-  <title>Woods Team Hub</title>
-  <style>
-    :root{--ink:#18352f;--cream:#fbf8f1;--paper:#fff;--gold:#d8a946;--red:#b42318;--muted:#66756f;--line:#dfe5e1;--shadow:0 12px 35px rgba(24,53,47,.10)}
-    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-    button,input,select{font:inherit}.shell{max-width:1180px;margin:auto;min-height:100vh;background:var(--cream)}
-    header{background:var(--ink);color:#fff;padding:18px 20px 14px;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.16)}
-    .brand{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand h1{font-size:1.22rem;margin:0;letter-spacing:.01em}.brand small{display:block;color:#cbd8d3;margin-top:2px}
-    .admin-toggle{border:1px solid #678079;background:transparent;color:#fff;border-radius:999px;padding:8px 13px;cursor:pointer}
-    nav{display:flex;gap:7px;overflow:auto;padding-top:14px}.tab{white-space:nowrap;border:0;background:#294a43;color:#dfe9e5;padding:9px 14px;border-radius:999px;cursor:pointer}.tab.active{background:var(--gold);color:#172d28;font-weight:700}.tab[disabled]{opacity:.5;cursor:not-allowed}
-    main{padding:22px}.toolbar{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:10px;margin-bottom:16px}
-    .search,.filter,.btn{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 13px;color:var(--ink)}
-    .search{width:100%;padding-left:15px}.btn{cursor:pointer;font-weight:700}.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.danger{color:var(--red)}
-    .notice{border-left:5px solid var(--gold);background:#fff8df;padding:12px 14px;border-radius:10px;margin:0 0 18px;font-size:.94rem}
-    .stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.chip{background:#e7eeeb;border-radius:999px;padding:7px 11px;font-size:.88rem;font-weight:650}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
-    .card-head{display:flex;justify-content:space-between;gap:12px}.card h2{font-size:1.05rem;margin:0}.category{color:var(--muted);font-size:.85rem;margin-top:3px}.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.badge{border-radius:999px;padding:5px 9px;font-size:.78rem;font-weight:750;background:#fee4e2;color:#8a1c13}.badge.none{background:#e5f4eb;color:#17633a}
-    .actions{display:none;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}body.admin .actions{display:flex}.mini{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;cursor:pointer}
-    .empty{text-align:center;padding:48px 20px;color:var(--muted);background:#fff;border:1px dashed #bdc9c4;border-radius:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;display:none}body.admin .panel{display:block}
-    .panel h2{font-size:1.05rem;margin:0 0 6px}.panel p{color:var(--muted);margin:0 0 14px}.file{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.file input{max-width:100%}
-    dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 28px);box-shadow:0 24px 80px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(10,28,23,.62)}form{padding:20px}.form-grid{display:grid;gap:13px}.field label{display:block;font-weight:700;font-size:.9rem;margin-bottom:5px}.field input,.field select{width:100%;min-height:44px;border:1px solid #cbd5d0;border-radius:10px;padding:9px 11px}.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.checks label{display:flex;gap:8px;align-items:center;background:#f4f7f5;border-radius:9px;padding:8px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}
-    .future{padding:50px 20px;text-align:center;color:var(--muted)}.future h2{color:var(--ink)}
-    @media(max-width:680px){main{padding:16px}.toolbar{grid-template-columns:1fr 1fr}.toolbar .search{grid-column:1/-1}.grid{grid-template-columns:1fr}.brand small{display:none}.checks{grid-template-columns:1fr}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#18352f">
+<title>Woods Team Hub</title>
+<style>
+:root{--ink:#18352f;--cream:#fbf8f1;--paper:#fff;--gold:#d8a946;--red:#b42318;--muted:#66756f;--line:#dfe5e1;--shadow:0 12px 35px rgba(24,53,47,.10)}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}button,input,select,textarea{font:inherit}
+.shell{max-width:1180px;margin:auto;min-height:100vh}header{background:var(--ink);color:#fff;padding:18px 20px 14px;position:sticky;top:0;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.16)}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:16px}.brand h1{font-size:1.22rem;margin:0}.brand small{display:block;color:#cbd8d3;margin-top:2px}.account{border:1px solid #678079;background:transparent;color:#fff;border-radius:999px;padding:8px 13px;cursor:pointer}
+nav{display:flex;gap:7px;overflow:auto;padding-top:14px}.tab{white-space:nowrap;border:0;background:#294a43;color:#dfe9e5;padding:9px 14px;border-radius:999px}.tab.active{background:var(--gold);color:#172d28;font-weight:700}.tab[disabled]{opacity:.5}
+main{padding:22px}.toolbar{display:grid;grid-template-columns:minmax(220px,1fr) auto auto;gap:10px;margin-bottom:16px}.search,.filter,.btn{min-height:46px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 13px;color:var(--ink)}.search{width:100%}.btn{cursor:pointer;font-weight:700}.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.danger,.danger{color:var(--red)}.btn.inline{display:inline-block;margin-top:14px}
+.notice{border-left:5px solid var(--gold);background:#fff8df;padding:12px 14px;border-radius:10px;margin:0 0 18px;font-size:.94rem}.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}.chip{background:#e7eeeb;border-radius:999px;padding:7px 11px;font-size:.88rem;font-weight:650}.chip[data-tone=error]{background:#fee4e2;color:#8a1c13}.chip[data-tone=ok]{background:#e5f4eb;color:#17633a}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:13px}.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.card h2{font-size:1.05rem;margin:0}.category{color:var(--muted);font-size:.85rem;margin-top:3px}.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.badge{border-radius:999px;padding:5px 9px;font-size:.78rem;font-weight:750;background:#fee4e2;color:#8a1c13}.badge.none{background:#e5f4eb;color:#17633a}.notes{font-size:.9rem;color:var(--muted)}
+.actions{display:none;gap:7px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}body.admin .actions{display:flex}.mini{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 10px;cursor:pointer}
+.empty{text-align:center;padding:48px 20px;color:var(--muted);background:#fff;border:1px dashed #bdc9c4;border-radius:16px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}.panel[hidden]{display:none}.panel h2{font-size:1.05rem;margin:0 0 6px}.panel p{color:var(--muted);margin:0 0 14px}.file{display:flex;flex-wrap:wrap;gap:9px;align-items:center}.file input{max-width:100%}
+dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 28px);box-shadow:0 24px 80px rgba(0,0,0,.3)}dialog::backdrop{background:rgba(10,28,23,.62)}form,.dialog-body{padding:20px}.form-grid{display:grid;gap:13px}.field label{display:block;font-weight:700;font-size:.9rem;margin-bottom:5px}.field input,.field textarea{width:100%;min-height:44px;border:1px solid #cbd5d0;border-radius:10px;padding:9px 11px}.field textarea{min-height:80px}.checks{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.checks label{display:flex;gap:8px;align-items:center;background:#f4f7f5;border-radius:9px;padding:8px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:17px}.error{color:var(--red);min-height:1.4em}
+@media(max-width:680px){main{padding:16px}.toolbar{grid-template-columns:1fr 1fr}.toolbar .search{grid-column:1/-1}.grid{grid-template-columns:1fr}.brand small{display:none}.checks{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 <div class="shell">
-<header>
-  <div class="brand"><div><h1>Woods Team Hub</h1><small>Where Coffee Meets Community</small></div><button class="admin-toggle" id="adminToggle">Admin mode</button></div>
-  <nav>
-    <button class="tab active" data-view="allergens">Allergen matrix</button>
-    <button class="tab" data-view="training" disabled>Training log</button>
-    <button class="tab" data-view="bookings" disabled>Table bookings</button>
-    <button class="tab" data-view="handbook" disabled>Handbook</button>
-    <button class="tab" data-view="coshh" disabled>COSHH</button>
-  </nav>
-</header>
+<header><div class="brand"><div><h1>Woods Team Hub</h1><small>Where Coffee Meets Community</small></div><button class="account" id="accountBtn">Sign in</button></div>
+<nav><button class="tab active">Allergen matrix</button><button class="tab" disabled>Training log</button><button class="tab" disabled>Table bookings</button><button class="tab" disabled>Handbook</button><button class="tab" disabled>COSHH</button></nav></header>
 <main>
-<section id="allergens">
-  <p class="notice"><strong>Always check.</strong> Recipes and supplier ingredients can change. If you are uncertain, pause the order and confirm with a manager.</p>
-  <section class="panel">
-    <h2>Manage allergen data</h2>
-    <p>Import the Woods CSV, add individual products, or amend an existing item. Imported data replaces the current list after confirmation.</p>
-    <div class="file"><input id="csvFile" type="file" accept=".csv,text/csv"><button class="btn primary" id="importBtn">Import CSV</button><button class="btn" id="addBtn">Add product</button><button class="btn" id="exportBtn">Export backup</button></div>
-  </section>
-  <div class="toolbar">
-    <input class="search" id="search" type="search" placeholder="Search food, drink or allergen…" autocomplete="off">
-    <select class="filter" id="category"><option value="">All categories</option></select>
-    <select class="filter" id="allergen"><option value="">All allergens</option></select>
-  </div>
-  <div class="stats"><span class="chip" id="count">0 products</span><span class="chip" id="syncState">Waiting for data</span></div>
-  <div class="grid" id="grid"></div>
-</section>
-<section class="future" id="future" hidden><h2>Coming next</h2><p>This module is ready to be added to the Woods Team Hub.</p></section>
-</main>
-</div>
-<dialog id="editor">
-<form method="dialog" id="editForm">
-  <h2 id="dialogTitle">Add product</h2>
-  <div class="form-grid">
-    <div class="field"><label for="name">Product name</label><input id="name" required></div>
-    <div class="field"><label for="itemCategory">Category</label><input id="itemCategory" placeholder="e.g. Breakfast"></div>
-    <div class="field"><label>Contains</label><div class="checks" id="checks"></div></div>
-  </div>
-  <div class="dialog-actions"><button class="btn" value="cancel">Cancel</button><button class="btn primary" id="saveBtn" value="default">Save product</button></div>
-</form>
-</dialog>
-<script>
-const STANDARD=['Celery','Cereals containing gluten','Crustaceans','Eggs','Fish','Lupin','Milk','Molluscs','Mustard','Nuts','Peanuts','Sesame','Soya','Sulphites'];
-const KEY='woods-allergen-items-v1';
-let items=JSON.parse(localStorage.getItem(KEY)||'[]'), editing=null;
-const $=s=>document.querySelector(s), grid=$('#grid'), search=$('#search'), cat=$('#category'), af=$('#allergen');
-function safe(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function persist(){localStorage.setItem(KEY,JSON.stringify(items));$('#syncState').textContent='Saved on this device';render()}
-function normalized(a){return [...new Set((a||[]).map(x=>String(x).trim()).filter(Boolean))]}
-function refreshFilters(){
- const current=cat.value, cats=[...new Set(items.map(x=>x.category).filter(Boolean))].sort();
- cat.innerHTML='<option value="">All categories</option>'+cats.map(x=>'<option>'+safe(x)+'</option>').join('');cat.value=cats.includes(current)?current:'';
- const all=[...new Set([...STANDARD,...items.flatMap(x=>x.allergens||[])])].sort();
- af.innerHTML='<option value="">All allergens</option>'+all.map(x=>'<option>'+safe(x)+'</option>').join('');
-}
-function render(){
- refreshFilters();const q=search.value.trim().toLowerCase(), c=cat.value, a=af.value;
- const shown=items.filter(x=>(!c||x.category===c)&&(!a||(x.allergens||[]).includes(a))&&(!q||[x.name,x.category,...(x.allergens||[])].join(' ').toLowerCase().includes(q)));
- $('#count').textContent=shown.length+' product'+(shown.length===1?'':'s');
- if(!shown.length){grid.innerHTML='<div class="empty">'+(items.length?'No products match those filters.':'No allergen data yet. Enter admin mode and import the CSV.')+'</div>';return}
- grid.innerHTML=shown.map(x=>`<article class="card"><div class="card-head"><div><h2>${safe(x.name)}</h2><div class="category">${safe(x.category||'Uncategorised')}</div></div></div><div class="badges">${x.allergens?.length?x.allergens.map(y=>`<span class="badge">${safe(y)}</span>`).join(''):'<span class="badge none">No listed allergens</span>'}</div><div class="actions"><button class="mini" onclick="editItem('${x.id}')">Edit</button><button class="mini" onclick="deleteItem('${x.id}')">Archive</button></div></article>`).join('');
-}
-function parseCSV(text){
- const rows=[];let row=[],cell='',quote=false;
- for(let i=0;i<text.length;i++){const ch=text[i],next=text[i+1];if(ch==='"'&&quote&&next==='"'){cell+='"';i++}else if(ch==='"'){quote=!quote}else if(ch===','&&!quote){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!quote){if(ch==='\r'&&next==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell=''}else cell+=ch}
- row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows;
-}
-function importRows(rows){
- if(rows.length<2)throw new Error('The CSV has no product rows.');
- const headers=rows[0].map(x=>x.trim()), lower=headers.map(x=>x.toLowerCase());
- let nameIndex=lower.findIndex(x=>/product|item|dish|menu|name/.test(x));if(nameIndex<0)nameIndex=0;
- const categoryIndex=lower.findIndex(x=>/category|section|group/.test(x));
- const allergenCols=headers.map((h,i)=>({h:h.trim(),i})).filter(o=>iIsAllergen(o.h));
- const records=rows.slice(1).map((r,n)=>{const name=(r[nameIndex]||'').trim();if(!name)return null;let allergens=[];
-   if(allergenCols.length)allergens=allergenCols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
-   else {const ai=lower.findIndex(x=>x==='allergens'||x==='allergen');if(ai>=0)allergens=(r[ai]||'').split(/[;|,]/).map(canonical)}
-   return {id:'csv-'+Date.now()+'-'+n,name,category:categoryIndex>=0?(r[categoryIndex]||'').trim():'',allergens:normalized(allergens)}
- }).filter(Boolean);
- if(!records.length)throw new Error('No product names were found.');return records;
-}
-function canonical(s){const t=String(s||'').trim();return STANDARD.find(x=>x.toLowerCase()===t.toLowerCase())||t}
-function iIsAllergen(h){const t=h.toLowerCase();return STANDARD.some(x=>t.includes(x.toLowerCase())||x.toLowerCase().includes(t))}
-function isMarked(v){return /^(x|yes|y|true|1|contains|✓|✔)$/i.test(String(v||'').trim())}
-$('#adminToggle').onclick=()=>{document.body.classList.toggle('admin');$('#adminToggle').textContent=document.body.classList.contains('admin')?'Exit admin':'Admin mode'};
-search.oninput=render;cat.onchange=render;af.onchange=render;
-$('#importBtn').onclick=async()=>{const file=$('#csvFile').files[0];if(!file)return alert('Choose the CSV file first.');try{const next=importRows(parseCSV(await file.text()));if(items.length&&!confirm('Replace the current '+items.length+' products with '+next.length+' imported products?'))return;items=next;persist();alert(next.length+' products imported.')}catch(e){alert(e.message)}};
-$('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='woods-allergen-backup.json';a.click();URL.revokeObjectURL(a.href)};
-function openEditor(item){editing=item?.id||null;$('#dialogTitle').textContent=item?'Edit product':'Add product';$('#name').value=item?.name||'';$('#itemCategory').value=item?.category||'';$('#checks').innerHTML=STANDARD.map(x=>`<label><input type="checkbox" value="${safe(x)}" ${item?.allergens?.includes(x)?'checked':''}> ${safe(x)}</label>`).join('');$('#editor').showModal()}
-$('#addBtn').onclick=()=>openEditor();
-window.editItem=id=>openEditor(items.find(x=>x.id===id));
-window.deleteItem=id=>{const item=items.find(x=>x.id===id);if(item&&confirm('Archive '+item.name+'?')){items=items.filter(x=>x.id!==id);persist()}};
-$('#saveBtn').onclick=e=>{e.preventDefault();if(!$('#name').value.trim())return;const value={id:editing||crypto.randomUUID(),name:$('#name').value.trim(),category:$('#itemCategory').value.trim(),allergens:[...document.querySelectorAll('#checks input:checked')].map(x=>x.value)};items=editing?items.map(x=>x.id===editing?value:x):[...items,value];persist();$('#editor').close()};
-render();
-</script>
-</body>
-</html>
+<p class="notice"><strong>Always check.</strong> Recipes and supplier ingredients can change. If you are uncertain, pause the order and confirm with a manager.</p>
+<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history.</p><div class="file"><input id="csvFile" type="file" accept=".csv,text/csv"><button class="btn primary" id="importBtn">Import CSV</button><button class="btn" id="addBtn">Add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
+<div class="toolbar"><input class="search" id="search" type="search" placeholder="Search food, drink or allergen…" autocomplete="off"><select class="filter" id="category"><option value="">All categories</option></select><select class="filter" id="allergen"><option value="">All allergens</option></select></div>
+<div class="stats"><span class="chip" id="count">0 products</span><span class="chip" id="syncState">Connecting…</span></div><div class="grid" id="grid"></div>
+</main></div>
+
+<dialog id="auth"><form id="signInForm"><h2>Staff sign in</h2><div class="form-grid"><div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required></div><div class="field"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><div class="error" id="authError"></div></div><div class="dialog-actions"><button class="btn" type="button" onclick="this.closest('dialog').close()">Cancel</button><button class="btn primary">Sign in</button></div></form></dialog>
+<dialog id="account"><div class="dialog-body"><h2>Your account</h2><p>You are signed in to the shared Woods Team Hub.</p><div class="dialog-actions"><button class="btn" onclick="this.closest('dialog').close()">Close</button><button class="btn danger" id="signOutBtn">Sign out</button></div></div></dialog>
+<dialog id="editor"><form id="editForm"><h2 id="dialogTitle">Add product</h2><div class="form-grid"><div class="field"><label for="name">Product name</label><input id="name" required></div><div class="field"><label for="itemCategory">Category</label><input id="itemCategory" placeholder="e.g. Breakfast"></div><div class="field"><label for="notes">Notes</label><textarea id="notes" placeholder="Optional preparation or cross-contact note"></textarea></div><div class="field"><label>Contains</label><div class="checks" id="checks"></div></div></div><div class="dialog-actions"><button class="btn" type="button" onclick="this.closest('dialog').close()">Cancel</button><button class="btn primary">Save product</button></div></form></dialog>
+<dialog id="message"><div class="dialog-body"><p id="messageText"></p><div class="dialog-actions"><button class="btn primary" onclick="this.closest('dialog').close()">OK</button></div></div></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script><script src="app.js"></script>
+</body></html>
