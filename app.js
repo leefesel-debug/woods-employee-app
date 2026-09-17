@@ -8,7 +8,20 @@ function safe(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&
 function normalized(a){return [...new Set((a||[]).map(x=>String(x).trim()).filter(Boolean))]}
 function setStatus(text,tone=''){const el=$('#syncState');el.textContent=text;el.dataset.tone=tone}
 function showMessage(text){$('#messageText').textContent=text;$('#message').showModal()}
-function canonical(s){const t=String(s||'').trim();return STANDARD.find(x=>x.toLowerCase()===t.toLowerCase())||t}
+function canonical(s){
+ const t=String(s||'').trim(),v=t.toLowerCase();
+ const aliases=[
+  [/gluten|wheat|barley|rye|oat/,'Cereals containing gluten'],
+  [/^egg(s)?$/,'Eggs'],[/dairy|lactose|^milk$/,'Milk'],
+  [/soy|soya/,'Soya'],[/tree nut|^nut(s)?$/,'Nuts'],
+  [/peanut|groundnut/,'Peanuts'],[/sulph|sulf/,'Sulphites'],
+  [/sesame/,'Sesame'],[/mustard/,'Mustard'],[/celery/,'Celery'],
+  [/fish/,'Fish'],[/crustacean|shellfish/,'Crustaceans'],
+  [/mollusc/,'Molluscs'],[/lupin/,'Lupin']
+ ];
+ const hit=aliases.find(([re])=>re.test(v));
+ return hit?hit[1]:(STANDARD.find(x=>x.toLowerCase()===v)||t);
+}
 function iIsAllergen(h){const t=h.toLowerCase();return STANDARD.some(x=>t.includes(x.toLowerCase())||x.toLowerCase().includes(t))}
 function isMarked(v){return /^(x|yes|y|true|1|contains|✓|✔)$/i.test(String(v||'').trim())}
 
@@ -71,21 +84,26 @@ function importRows(rows){
  let hi=0,best=-1;
  cleaned.slice(0,25).forEach((r,i)=>{const score=scoreRow(r);if(score>best){best=score;hi=i}});
  const headers=cleaned[hi],lower=headers.map(x=>x.toLowerCase());
- const allergenCols=headers.map((h,i)=>({h,i})).filter(o=>o.h&&iIsAllergen(o.h));
- const categoryIndex=lower.findIndex(x=>/category|section|group/.test(x));
- let nameIndex=lower.findIndex(x=>/product|item|dish|menu item|food|drink|name/.test(x));
- if(nameIndex<0){
-   nameIndex=headers.findIndex((h,i)=>h&&!allergenCols.some(a=>a.i===i)&&i!==categoryIndex);
- }
+ const genericAllergenIndex=lower.findIndex(x=>/^allergens?$/.test(x));
+ const categoryIndex=lower.findIndex(x=>/^(menu|category|section|group)$/.test(x));
+ let nameIndex=lower.findIndex(x=>/^(item|product|product name|item name|dish|food|drink|name)$/.test(x));
+ if(nameIndex<0)nameIndex=lower.findIndex(x=>/item|product|dish|food|drink|name/.test(x));
+ const allergenCols=headers.map((h,i)=>({h,i})).filter(o=>o.i!==genericAllergenIndex&&!/free|vegan/i.test(o.h)&&o.h&&iIsAllergen(o.h));
+ if(nameIndex<0)nameIndex=headers.findIndex((h,i)=>h&&i!==categoryIndex&&i!==genericAllergenIndex&&!allergenCols.some(a=>a.i===i));
  if(nameIndex<0)nameIndex=0;
- const singleAllergenIndex=lower.findIndex(x=>x==='allergens'||x==='allergen');
  const nonProducts=/^(allergen|allergens|product|products|item|items|menu|category|section|key|yes|no)$/i;
  const records=cleaned.slice(hi+1).map(r=>{
    const name=(r[nameIndex]||'').trim();
    if(!name||nonProducts.test(name))return null;
    let allergens=[];
-   if(allergenCols.length)allergens=allergenCols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
-   else if(singleAllergenIndex>=0)allergens=(r[singleAllergenIndex]||'').split(/[;|,]/).map(canonical);
+   if(genericAllergenIndex>=0){
+     const raw=(r[genericAllergenIndex]||'').trim();
+     if(raw&&!/^(n\/?a|none|no|nil|-+)$/i.test(raw)){
+       allergens=raw.split(/[,;|/&+]|\band\b|\r?\n/i).map(canonical).filter(x=>STANDARD.includes(x));
+     }
+   }else if(allergenCols.length){
+     allergens=allergenCols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
+   }
    return{name,category:categoryIndex>=0?(r[categoryIndex]||'').trim():'',allergens:normalized(allergens),active:true,created_by:currentUser.id,updated_by:currentUser.id};
  }).filter(Boolean);
  if(!records.length)throw new Error('No product names were found. Please check the CSV has a product or item column.');
