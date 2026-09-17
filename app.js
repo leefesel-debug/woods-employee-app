@@ -65,7 +65,7 @@ function refreshFilters(){
 function render(){
  refreshFilters();
  const q=$('#search').value.trim().toLowerCase(),c=$('#category').value,a=$('#allergen').value;
- const shown=items.filter(x=>(!c||x.category===c)&&(!a||(x.allergens||[]).includes(a))&&(!q||[x.name,x.category,...(x.allergens||[])].join(' ').toLowerCase().includes(q)));
+ const shown=items.filter(x=>(!c||x.category===c)&&(!a||(x.allergens||[]).includes(a))&&(!q||[x.name,x.category,x.notes,...(x.allergens||[])].join(' ').toLowerCase().includes(q)));
  $('#count').textContent=shown.length+' product'+(shown.length===1?'':'s');
  if(!currentUser){$('#grid').innerHTML='<div class="empty"><strong>Sign in to view the allergen matrix.</strong><br><button class="btn primary inline" onclick="openAuth()">Sign in</button></div>';return}
  if(!shown.length){$('#grid').innerHTML='<div class="empty">'+(items.length?'No products match those filters.':isAdmin?'No data yet. Import the Woods CSV above.':'No active products are available.')+'</div>';return}
@@ -80,33 +80,45 @@ function parseCSV(text){
 function importRows(rows){
  if(rows.length<2)throw new Error('The CSV has no product rows.');
  const cleaned=rows.map(r=>r.map(v=>String(v||'').replace(/^\uFEFF/,'').trim()));
- const scoreRow=r=>r.reduce((n,v)=>n+(iIsAllergen(v)?3:/product|item|dish|menu|food|drink|name|category|section/i.test(v)?2:0),0);
+ const scoreRow=r=>r.reduce((n,v)=>n+(/^(item|product|product name|item name)$/i.test(v)?5:/^(menu|category|supplier|vegan|gluten free|allergens?)$/i.test(v)?3:iIsAllergen(v)?2:0),0);
  let hi=0,best=-1;
- cleaned.slice(0,25).forEach((r,i)=>{const score=scoreRow(r);if(score>best){best=score;hi=i}});
- const headers=cleaned[hi],lower=headers.map(x=>x.toLowerCase());
- const genericAllergenIndex=lower.findIndex(x=>/^allergens?$/.test(x));
- const categoryIndex=lower.findIndex(x=>/^(menu|category|section|group)$/.test(x));
- let nameIndex=lower.findIndex(x=>/^(item|product|product name|item name|dish|food|drink|name)$/.test(x));
- if(nameIndex<0)nameIndex=lower.findIndex(x=>/item|product|dish|food|drink|name/.test(x));
+ cleaned.slice(0,30).forEach((r,i)=>{const score=scoreRow(r);if(score>best){best=score;hi=i}});
+ const headers=cleaned[hi], lower=headers.map(x=>x.toLowerCase().replace(/\s+/g,' ').trim());
+ const findHeader=re=>lower.findIndex(x=>re.test(x));
+ const categoryIndex=findHeader(/^(menu|category|section|group)$/);
+ let nameIndex=findHeader(/^(item|product|product name|item name|dish|food|drink|name)$/);
+ const supplierIndex=findHeader(/supplier|manufacturer|brand/);
+ const veganIndex=findHeader(/^vegan/);
+ const glutenFreeIndex=findHeader(/gluten[ -]?free/);
+ let genericAllergenIndex=findHeader(/^allergen(s| information| info)?$/);
+ if(genericAllergenIndex<0)genericAllergenIndex=findHeader(/allergen/);
  const allergenCols=headers.map((h,i)=>({h,i})).filter(o=>o.i!==genericAllergenIndex&&!/free|vegan/i.test(o.h)&&o.h&&iIsAllergen(o.h));
- if(nameIndex<0)nameIndex=headers.findIndex((h,i)=>h&&i!==categoryIndex&&i!==genericAllergenIndex&&!allergenCols.some(a=>a.i===i));
- if(nameIndex<0)nameIndex=0;
+ if(nameIndex<0)nameIndex=headers.findIndex((h,i)=>h&&![categoryIndex,supplierIndex,veganIndex,glutenFreeIndex,genericAllergenIndex].includes(i)&&!allergenCols.some(a=>a.i===i));
+ if(nameIndex<0)throw new Error('Could not identify the Item column. Detected headings: '+headers.filter(Boolean).join(', '));
  const nonProducts=/^(allergen|allergens|product|products|item|items|menu|category|section|key|yes|no)$/i;
+ let lastCategory='';
  const records=cleaned.slice(hi+1).map(r=>{
+   if(categoryIndex>=0&&(r[categoryIndex]||'').trim())lastCategory=(r[categoryIndex]||'').trim();
    const name=(r[nameIndex]||'').trim();
    if(!name||nonProducts.test(name))return null;
    let allergens=[];
    if(genericAllergenIndex>=0){
      const raw=(r[genericAllergenIndex]||'').trim();
-     if(raw&&!/^(n\/?a|none|no|nil|-+)$/i.test(raw)){
-       allergens=raw.split(/[,;|/&+]|\band\b|\r?\n/i).map(canonical).filter(x=>STANDARD.includes(x));
+     if(raw&&!/^(n\/?a|none|no|nil|not applicable|-+)$/i.test(raw)){
+       allergens=raw.split(/[,;|&+]|\band\b|\r?\n/i)
+         .map(x=>x.replace(/^(contains?|may contain|traces? of)\s*:?-?\s*/i,'').trim())
+         .filter(Boolean).map(canonical);
      }
    }else if(allergenCols.length){
      allergens=allergenCols.filter(o=>isMarked(r[o.i])).map(o=>canonical(o.h));
    }
-   return{name,category:categoryIndex>=0?(r[categoryIndex]||'').trim():'',allergens:normalized(allergens),active:true,created_by:currentUser.id,updated_by:currentUser.id};
+   const details=[];
+   if(supplierIndex>=0&&(r[supplierIndex]||'').trim())details.push('Supplier: '+(r[supplierIndex]||'').trim());
+   if(veganIndex>=0&&(r[veganIndex]||'').trim())details.push('Vegan: '+(r[veganIndex]||'').trim());
+   if(glutenFreeIndex>=0&&(r[glutenFreeIndex]||'').trim())details.push('Gluten free: '+(r[glutenFreeIndex]||'').trim());
+   return{name,category:lastCategory,allergens:normalized(allergens),notes:details.join(' · '),active:true,created_by:currentUser.id,updated_by:currentUser.id};
  }).filter(Boolean);
- if(!records.length)throw new Error('No product names were found. Please check the CSV has a product or item column.');
+ if(!records.length)throw new Error('No product names were found. Please check the CSV has an Item column.');
  return records;
 }
 
@@ -114,7 +126,8 @@ async function importCSV(){
  const file=$('#csvFile').files[0];if(!file)return showMessage('Choose the CSV file first.');
  try{
   const records=importRows(parseCSV(await file.text()));
-  if(items.length&&!confirm('Archive the current list and import '+records.length+' products?'))return;
+  const sample=records.slice(0,3).map(x=>x.name+(x.allergens.length?' — '+x.allergens.join(', '):' — no allergens')).join('\n');
+  if(!confirm('Import '+records.length+' products?\n\nFirst rows detected:\n'+sample+'\n\nThis will archive and replace the current list.'))return;
   setStatus('Importing…');
   if(items.length){const {error:e1}=await db.from('products').update({active:false,updated_by:currentUser.id}).eq('active',true);if(e1)throw e1}
   const {error}=await db.from('products').insert(records);if(error)throw error;
