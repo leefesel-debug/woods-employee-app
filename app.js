@@ -73,9 +73,29 @@ function render(){
 }
 
 function parseCSV(text){
- const rows=[];let row=[],cell='',quote=false;
- for(let i=0;i<text.length;i++){const ch=text[i],next=text[i+1];if(ch==='"'&&quote&&next==='"'){cell+='"';i++}else if(ch==='"'){quote=!quote}else if(ch===','&&!quote){row.push(cell);cell=''}else if((ch==='\n'||ch==='\r')&&!quote){if(ch==='\r'&&next==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell=''}else cell+=ch}
- row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows;
+ function parseWith(delimiter){
+  const rows=[];let row=[],cell='',quote=false;
+  for(let i=0;i<text.length;i++){
+   const ch=text[i],next=text[i+1];
+   if(ch==='"'&&quote&&next==='"'){cell+='"';i++}
+   else if(ch==='"'){quote=!quote}
+   else if(ch===delimiter&&!quote){row.push(cell);cell=''}
+   else if((ch==='\n'||ch==='\r')&&!quote){
+    if(ch==='\r'&&next==='\n')i++;
+    row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell='';
+   }else cell+=ch;
+  }
+  row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows;
+ }
+ const candidates=[',',';','\t'].map(delimiter=>{
+  const rows=parseWith(delimiter);
+  const score=Math.max(0,...rows.slice(0,40).map(r=>r.reduce((n,v)=>{
+   const h=String(v||'').replace(/^\uFEFF/,'').trim().toLowerCase().replace(/\s+/g,' ');
+   return n+(/^(item|product|product name|item name)$/.test(h)?10:/^(menu|category|supplier|vegan|gluten free|allergen|allergens)$/.test(h)?4:0);
+  },0)));
+  return{rows,score,width:Math.max(0,...rows.slice(0,40).map(r=>r.length))};
+ }).sort((x,y)=>y.score-x.score||y.width-x.width);
+ return candidates[0].rows;
 }
 function importRows(rows){
  if(rows.length<2)throw new Error('The CSV has no product rows.');
