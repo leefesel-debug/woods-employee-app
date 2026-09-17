@@ -24,7 +24,7 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 <nav><button class="tab active">Allergen matrix</button><button class="tab" disabled>Training log</button><button class="tab" disabled>Table bookings</button><button class="tab" disabled>Handbook</button><button class="tab" disabled>COSHH</button></nav></header>
 <main>
 <p class="notice"><strong>Always check.</strong> Recipes and supplier ingredients can change. If you are uncertain, pause the order and confirm with a manager.</p>
-<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history.</p><div class="file"><input id="csvFile" type="file" accept=".csv,text/csv"><button class="btn primary" id="importBtn">Import CSV</button><button class="btn" id="addBtn">Add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
+<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history. <strong>Build 6</strong></p><div class="file"><input id="csvFile" type="file" accept=".csv,text/csv"><button class="btn primary" id="importBtn">Import CSV</button><button class="btn" id="addBtn">Add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
 <div class="toolbar"><input class="search" id="search" type="search" placeholder="Search food, drink or allergen…" autocomplete="off"><select class="filter" id="category"><option value="">All categories</option></select><select class="filter" id="allergen"><option value="">All allergens</option></select></div>
 <div class="stats"><span class="chip" id="count">0 products</span><span class="chip" id="syncState">Connecting…</span></div><div class="grid" id="grid"></div>
 </main></div>
@@ -35,5 +35,5 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 <dialog id="message"><div class="dialog-body"><p id="messageText"></p><div class="dialog-actions"><button class="btn primary" onclick="this.closest('dialog').close()">OK</button></div></div></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js?v=20260917-5"></script><script src="app.js?v=20260917-5"></script>
+<script src="config.js?v=20260917-6"></script><script src="app.js?v=20260917-6"></script>
 </body></html>
