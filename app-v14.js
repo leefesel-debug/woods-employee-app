@@ -157,7 +157,7 @@ function prettyTime(value){return String(value||'').slice(0,5)}
 async function loadBookings(){
  initialiseBookingDates();const date=$('#bookingDay').value;$('#bookingDayTitle').textContent=prettyDate(date);
  if(!currentUser){bookings=[];renderBookings();return}
- const {data,error}=await db.from('table_bookings').select('id,customer_name,booking_date,booking_time,contact_details,party_size,created_at').eq('booking_date',date).order('booking_time');
+ const {data,error}=await db.from('table_bookings').select('id,customer_name,booking_date,booking_time,contact_details,party_size,created_at,created_by').eq('booking_date',date).order('booking_time');
  if(error){bookings=[];renderBookings(error.code==='42P01'?'Bookings setup is not complete yet.':error.message);return}
  bookings=data||[];renderBookings();
 }
@@ -166,7 +166,7 @@ function renderBookings(error=''){
  if(!currentUser){$('#bookingList').innerHTML='<div class="handbook-empty"><strong>Sign in to view table bookings.</strong></div>';return}
  if(error){$('#bookingList').innerHTML='<div class="handbook-empty">'+safe(error)+'</div>';return}
  if(!bookings.length){$('#bookingList').innerHTML='<div class="handbook-empty">No bookings for this day.</div>';return}
- $('#bookingList').innerHTML=bookings.map(x=>`<article class="booking-card"><div class="booking-time">${safe(prettyTime(x.booking_time))}</div><div><div class="booking-name">${safe(x.customer_name)}</div><div class="booking-meta">${Number(x.party_size)} people</div><div class="booking-contact">${safe(x.contact_details)}</div></div><button class="booking-delete" onclick="deleteBooking('${x.id}','${safe(x.customer_name)}')">Remove</button></article>`).join('');
+ $('#bookingList').innerHTML=bookings.map(x=>`<article class="booking-card"><div class="booking-time">${safe(prettyTime(x.booking_time))}</div><div><div class="booking-name">${safe(x.customer_name)}</div><div class="booking-meta">${Number(x.party_size)} people</div><div class="booking-contact">${safe(x.contact_details)}</div></div>${(isAdmin||x.created_by===currentUser?.id)?`<button class="booking-delete" onclick="deleteBooking('${x.id}','${safe(x.customer_name)}')">Remove</button>`:''}</article>`).join('');
 }
 async function saveBooking(e){
  e.preventDefault();if(!currentUser)return showMessage('Please sign in first.');
