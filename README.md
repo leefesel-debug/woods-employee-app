@@ -14,6 +14,8 @@ Employee app for Woods Coffee Shop, starting with the allergen matrix.
 - Review dates, action owners, version snapshots, staff acknowledgement and print/PDF output
 - Private Forms & Templates repository with search, categories and mobile-friendly document cards
 - Admin multi-file upload, metadata editing, replacement versions and archiving
+- Searchable mobile COSHH register with hazard filters, first aid, PPE and spill response
+- Admin COSHH loading, editing, review dates, archiving and audit history
 
 ## Data
 
@@ -34,3 +36,7 @@ Run `supabase-risk-assessments.sql` once in the Supabase SQL Editor. It creates 
 Run `supabase-documents.sql` once in the Supabase SQL Editor. It creates the document register, version history, audit trail, row-level security and a private 10 MB Supabase Storage bucket. Signed-in staff can open only the current file for an active document; admins can upload, replace, edit or archive documents.
 
 The bulk uploader recognises the supplied FOH, kitchen and toilet checklist filenames and assigns their titles, categories and frequencies automatically.
+
+## COSHH setup
+
+Run `supabase-coshh.sql` once in the Supabase SQL Editor. It creates the COSHH register, review fields, audit history and row-level security. Admins can then select the supplied `COSHH.csv` in the app and use **Import COSHH CSV** to load its 15 products directly into private Supabase storage.
