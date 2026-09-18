@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#5b725d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>Woods Team Hub – Build 24</title>
+<title>Woods Team Hub – Build 25</title>
 <link rel="icon" href="woods-logo.svg?v=1" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest?v=1">
-<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Woods Hub">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Woods Hub">
 <script>
-(()=>{const current='24';async function checkVersion(){try{const response=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const latest=await response.json();if(String(latest.build)!==current&&latest.url)location.replace(latest.url+'?build='+encodeURIComponent(latest.build)+'&refresh='+Date.now())}catch{}}window.addEventListener('pageshow',checkVersion);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()})})();
+(()=>{const current='25';async function checkVersion(){try{const response=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const latest=await response.json();if(String(latest.build)!==current&&latest.url)location.replace(latest.url+'?build='+encodeURIComponent(latest.build)+'&refresh='+Date.now())}catch{}}window.addEventListener('pageshow',checkVersion);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()})})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -37,6 +37,14 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 @media print{body.risk-print{background:#fff}body.risk-print header,body.risk-print .risk-detail-tools,body.risk-print .risk-filterbar,body.risk-print #riskBack,body.risk-print .risk-admin{display:none!important}body.risk-print main{padding:0}body.risk-print .view:not(#riskView),body.risk-print #riskOverview,body.risk-print .handbook-hero{display:none!important}body.risk-print #riskDetail{display:block!important}body.risk-print .risk-item{break-inside:avoid;box-shadow:none}body.risk-print .risk-item:not([open]) .risk-item-body{display:block}body.risk-print .risk-item summary{background:#edf5f1}}
 @media(max-width:680px){.brand-lockup{gap:9px}.brand-mark{width:40px;height:40px;border-radius:11px;padding:6px}.brand h1{font-size:1.02rem;line-height:1.15}.account{font-size:.82rem}.handbook-hero{padding:17px 82px 17px 17px}.handbook-hero::after{right:10px;width:65px;height:54px}.home-hero{padding:14px 2px}.home-logo{width:70px;height:58px}}
 @media(max-width:680px){.training-tools{grid-template-columns:1fr 1fr}.training-tools .search{grid-column:1/-1}.training-person{box-shadow:0 5px 18px rgba(24,53,47,.08)}.training-person summary{padding:13px;align-items:flex-start}.training-person-body{padding:0 13px}.training-record{grid-template-columns:1fr auto;padding:12px 0;gap:8px}.training-admin-actions{grid-column:1/-1}.training-admin-actions .mini{flex:1}.training-person-summary{flex-direction:column;align-items:flex-end;gap:4px}.training-meta,.training-detail{font-size:.78rem}}
+@media(max-width:680px){
+ header{padding:calc(12px + env(safe-area-inset-top)) 14px 10px}
+ .brand{min-height:44px}.brand-lockup{min-width:0}.brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.account{flex:0 0 auto}
+ main{padding:14px 16px calc(24px + env(safe-area-inset-bottom))}.home-hero{padding:12px 2px 16px}.home-hero h2{font-size:1.24rem;line-height:1.25}.home-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;padding:0 3px 20px}
+ .home-tile{aspect-ratio:1/1;min-height:0;border:1px solid #c8d2c9;border-top-width:1px;border-radius:13px;padding:14px;background:#fff;box-shadow:0 5px 14px rgba(38,61,44,.08);display:block}
+ .home-tile.placeholder{border-top-color:#c8d2c9;background:#fff}.home-tile>div{height:100%;display:flex;flex-direction:column;align-items:flex-start;gap:10px}.home-tile .tile-icon{width:37px;height:37px;border-radius:10px;background:var(--green-pale);border:1px solid #c4d1c6;color:var(--green-dark);font-size:1rem;flex:0 0 auto}.home-tile.placeholder .tile-icon{background:#f0f3f0;color:var(--green-dark)}
+ .home-tile h3{margin:auto 0 0;font-size:.86rem;line-height:1.2}.home-tile p,.home-tile .tile-status{display:none}
+}
 </style>
 </head>
 <body>
@@ -61,7 +69,7 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 </section>
 <section class="view" id="allergenView" hidden>
 <p class="notice"><strong>Always check.</strong> Recipes and supplier ingredients can change. If you are uncertain, pause the order and confirm with a manager.</p>
-<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history. <strong>Build 24</strong></p><div class="file"><button class="btn primary" id="importBtn">Load Woods data</button><button class="btn" id="addBtn">Quick add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
+<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history. <strong>Build 25</strong></p><div class="file"><button class="btn primary" id="importBtn">Load Woods data</button><button class="btn" id="addBtn">Quick add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
 <div class="toolbar"><input class="search" id="search" type="search" placeholder="Search product, category or allergen…" autocomplete="off"><select class="filter" id="dietary"><option value="">All dietary options</option><option value="vegan">Vegan</option><option value="gf">Gluten free</option><option value="both">Vegan &amp; gluten free</option></select><select class="filter" id="category"><option value="">All categories</option></select><select class="filter" id="allergen"><option value="">All allergens</option></select></div>
 <div class="stats"><span class="chip" id="count">0 products</span><span class="chip" id="syncState">Connecting…</span></div><div class="grid" id="grid"></div>
 </section>
@@ -153,5 +161,5 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-<script src="config.js?v=7"></script><script src="app-v16.js?v=24"></script><script src="risk-v1.js?v=1"></script><script src="documents-v1.js?v=1"></script><script src="coshh-v1.js?v=1"></script><script src="training-v1.js?v=1"></script>
+<script src="config.js?v=7"></script><script src="app-v16.js?v=25"></script><script src="risk-v1.js?v=1"></script><script src="documents-v1.js?v=1"></script><script src="coshh-v1.js?v=1"></script><script src="training-v1.js?v=1"></script>
 </body></html>
