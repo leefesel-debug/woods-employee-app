@@ -121,7 +121,7 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
    <div class="field order-date"><label for="orderDelivery">Delivery date</label><input id="orderDelivery" type="date" required></div>
    <div class="order-catalogue" id="orderItems"></div>
    <button class="btn primary" id="openOrderEmail" type="button" disabled>Open email for review</button>
-   <p class="order-send-note">This will not send automatically. Your email app will open so the order can be checked and sent deliberately.</p>
+   <p class="order-send-note" id="orderSendNote">This will not send automatically. Your email app will open so the order can be checked and sent deliberately.</p>
   </section>
   <section><div class="panel"><h2>Email preview</h2><div class="order-preview"><strong>To</strong><p id="orderPreviewTo">sales@aubreyallen.co.uk</p><strong>Subject</strong><p id="orderPreviewSubject">Woods Coffee Shop</p><strong>Message</strong><div class="order-preview-body" id="orderPreviewBody"></div></div></div>
    <div class="booking-day-head"><div><h2>Recent orders</h2><div class="stats"><span class="chip" id="orderCount">0 recent orders</span></div></div></div>
