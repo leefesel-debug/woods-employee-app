@@ -7,8 +7,8 @@ function orderDeliveryText(value){const tomorrow=orderTomorrow();if(value===tomo
 function selectedOrderLines(){return orderCatalogue.map(item=>{const quantity=Number(document.querySelector(`[data-order-item="${item.id}"]`)?.value||0);return quantity>0?{...item,quantity,order_phrase:`${quantity} ${quantity===1?item.singular_phrase:item.plural_phrase}`}:null}).filter(Boolean)}
 function orderEmail(){
  const lines=selectedOrderLines(),delivery=$('#orderDelivery').value||orderTomorrow();
- const list=lines.map(x=>x.order_phrase).join(', ');
- return{lines,delivery,subject:orderSupplier?.email_subject||'Woods Coffee Shop',body:`Hi team,\n\nPlease could I order the following for delivery ${orderDeliveryText(delivery)}: ${list}${list?'.':''}\n\nThanks,\nWoods`};
+ const list=lines.map(x=>`- ${x.order_phrase}`).join('\n');
+ return{lines,delivery,subject:orderSupplier?.email_subject||'Woods Coffee Shop',body:`Hi team,\n\nPlease could I order the following for delivery ${orderDeliveryText(delivery)}:\n\n${list}\n\nThanks,\nWoods`};
 }
 function renderOrderPreview(){const email=orderEmail();$('#orderPreviewTo').textContent=orderSupplier?.email||'sales@aubreyallen.co.uk';$('#orderPreviewSubject').textContent=email.subject;$('#orderPreviewBody').textContent=email.body;$('#openOrderEmail').disabled=!email.lines.length}
 async function loadOrders(){
@@ -30,7 +30,7 @@ function renderOrders(setup=false){
  if(setup){$('#orderItems').innerHTML='';$('#recentOrders').innerHTML='';return}
  if(!$('#orderDelivery').value)$('#orderDelivery').value=orderTomorrow();
  $('#orderSupplierName').textContent=orderSupplier.name;$('#orderSupplierEmail').textContent=orderSupplier.email;
- $('#orderItems').innerHTML=orderCatalogue.map(x=>`<label class="order-item"><span><strong>${safe(x.item_name)}</strong><small>${x.item_name==='Cotswold Sausages'?'Ordered by the pack':'Ordered individually'}</small></span><input type="number" min="0" max="99" step="1" value="0" inputmode="numeric" data-order-item="${x.id}" aria-label="Quantity for ${safe(x.item_name)}"></label>`).join('');
+ $('#orderItems').innerHTML=orderCatalogue.map(x=>`<label class="order-item"><span><strong>${safe(x.item_name)}</strong><small>${x.singular_phrase.startsWith('pack of ')?'Ordered by the pack':'Ordered individually'}</small></span><input type="number" min="0" max="99" step="1" value="0" inputmode="numeric" data-order-item="${x.id}" aria-label="Quantity for ${safe(x.item_name)}"></label>`).join('');
  document.querySelectorAll('[data-order-item]').forEach(x=>x.oninput=renderOrderPreview);renderOrderPreview();renderRecentOrders();updateOrdersHomeCount();
 }
 function orderStatusLabel(status){return status==='sent'?'Sent':status==='cancelled'?'Cancelled':'Email prepared'}

@@ -143,9 +143,10 @@ select s.id, x.item_name, x.singular_phrase, x.plural_phrase, x.sort_order
 from public.order_suppliers s
 cross join (values
   ('Cotswold Sausages', 'pack of Cotswold Sausages', 'packs of Cotswold Sausages', 1),
-  ('Black Pudding', 'Black Pudding', 'Black Puddings', 2),
-  ('White Pudding', 'White Pudding', 'White Puddings', 3),
-  ('Gala Pork Pie', 'Gala Pork Pie', 'Gala Pork Pies', 4)
+  ('Streaky Bacon', 'pack of Streaky Bacon', 'packs of Streaky Bacon', 2),
+  ('Black Pudding', 'Black Pudding', 'Black Puddings', 3),
+  ('White Pudding', 'White Pudding', 'White Puddings', 4),
+  ('Gala Pork Pie', 'Gala Pork Pie', 'Gala Pork Pies', 5)
 ) as x(item_name, singular_phrase, plural_phrase, sort_order)
 where s.name = 'Aubrey Allen'
 on conflict (supplier_id, item_name) do update set
@@ -153,4 +154,3 @@ on conflict (supplier_id, item_name) do update set
   plural_phrase = excluded.plural_phrase,
   sort_order = excluded.sort_order,
   active = true;
-
