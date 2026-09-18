@@ -10,6 +10,8 @@ Employee app for Woods Coffee Shop, starting with the allergen matrix.
 - Reserved navigation for Training Log, Table Bookings, Employee Handbook and COSHH
 - UK 14-allergen labels
 - Safety reminder for staff to confirm uncertain orders with a manager
+- Secure risk-assessment register with fire, health & safety and HACCP-style food-safety controls
+- Review dates, action owners, version snapshots, staff acknowledgement and print/PDF output
 
 ## Data
 
@@ -20,3 +22,7 @@ The present browser build stores imported data on the device as a safe preview. 
 ## Run
 
 Open `index.html` directly, or enable GitHub Pages for this repository.
+
+## Risk assessment setup
+
+Run `supabase-risk-assessments.sql` once in the Supabase SQL Editor. It creates the secure tables, row-level security policies, audit trail and Woods-owned starter assessments. Admins can then refine the controls in the app before approving the next version.
