@@ -36,7 +36,7 @@ Deno.serve(async (request) => {
 
   const admin = createClient(supabaseUrl, serviceKey)
   const { data: pendingOrder, error: orderError } = await admin.from('purchase_orders')
-    .select('id,supplier_id,supplier_name,supplier_email,delivery_date,created_by,status,active')
+    .select('id,supplier_id,supplier_name,supplier_email,supplier_cc_email,delivery_date,created_by,status,active')
     .eq('id', orderId).maybeSingle()
 
   if (orderError) return json({ error: 'The order could not be loaded' }, 500)
@@ -52,13 +52,20 @@ Deno.serve(async (request) => {
   const { data: order, error: claimError } = await admin.from('purchase_orders')
     .update({ status: 'sending', updated_by: user.id, last_send_error: null })
     .eq('id', orderId).eq('status', 'prepared').eq('active', true)
-    .select('id,supplier_id,supplier_name,supplier_email,delivery_date,status').maybeSingle()
+    .select('id,supplier_id,supplier_name,supplier_email,supplier_cc_email,delivery_date,status').maybeSingle()
 
   if (claimError) return json({ error: 'The order could not be prepared for sending' }, 500)
   if (!order) return json({ error: 'This order has already been sent, cancelled or is currently being processed' }, 409)
 
-  const allowedRecipients: Record<string, string> = { 'Aubrey Allen': 'sales@aubreyallen.co.uk' }
-  if (allowedRecipients[order.supplier_name] !== String(order.supplier_email).toLowerCase()) {
+  const allowedRecipients: Record<string, { to: string; cc: string[]; greeting: string }> = {
+    'Aubrey Allen': { to: 'sales@aubreyallen.co.uk', cc: ['hello@woodscoffeeshop.co.uk'], greeting: 'team' },
+    'John Dwyer Bakery': { to: 'orders@johndwyerbakery.co.uk', cc: ['sales@johndwyerbakery.co.uk', 'hello@woodscoffeeshop.co.uk'], greeting: 'team' },
+    'Monsoon Estates': { to: 'trade@monsoonestates.co.uk', cc: ['hello@woodscoffeeshop.co.uk'], greeting: 'Anne' },
+  }
+  const allowed = allowedRecipients[order.supplier_name]
+  const suppliedCc = String(order.supplier_cc_email || '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean).sort()
+  const expectedCc = allowed ? [...allowed.cc].sort() : []
+  if (!allowed || allowed.to !== String(order.supplier_email).toLowerCase() || JSON.stringify(expectedCc) !== JSON.stringify(suppliedCc)) {
     await admin.from('purchase_orders').update({ status: 'prepared', updated_by: user.id, last_send_error: 'Supplier recipient validation failed' }).eq('id', orderId)
     return json({ error: 'Supplier recipient validation failed' }, 403)
   }
@@ -96,7 +103,7 @@ Deno.serve(async (request) => {
     ? 'on the requested date'
     : `on ${new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/London' }).format(deliveryDate)}`
   const subject = 'Woods Coffee Shop'
-  const body = `Hi team,\n\nPlease could I order the following for delivery ${deliveryLabel}:\n\n${orderLines}\n\nThanks,\nWoods`
+  const body = `Hi ${allowed.greeting},\n\nPlease could I order the following for delivery ${deliveryLabel}:\n\n${orderLines}\n\nThanks,\nWoods`
 
   let emailResponse: Response
   try {
@@ -111,6 +118,7 @@ Deno.serve(async (request) => {
         from: 'Woods Coffee Shop <hello@woodscoffeeshop.co.uk>',
         reply_to: 'hello@woodscoffeeshop.co.uk',
         to: [order.supplier_email],
+        ...(allowed.cc.length ? { cc: allowed.cc } : {}),
         subject,
         text: body,
         tags: [{ name: 'order_id', value: order.id }],
