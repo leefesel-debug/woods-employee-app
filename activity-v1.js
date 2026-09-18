@@ -7,13 +7,14 @@ function activitySection(table,row){
  if(table==='operations_audit')return{key:row.record_type,label:{key_contacts:'Key contacts',complaint_records:'Complaints',accident_records:'Accidents'}[row.record_type]||'Operations'};
  return{
   product_audit:{key:'allergens',label:'Allergen matrix'},booking_audit:{key:'bookings',label:'Table bookings'},document_audit:{key:'documents',label:'Forms & templates'},
-  coshh_audit:{key:'coshh',label:'COSHH'},training_audit:{key:'training',label:'Training log'},risk_audit:{key:'risk',label:'Risk assessments'},handbook_audit:{key:'handbook',label:'Staff handbook'}
+  order_audit:{key:'orders',label:'Supplier orders'},coshh_audit:{key:'coshh',label:'COSHH'},training_audit:{key:'training',label:'Training log'},risk_audit:{key:'risk',label:'Risk assessments'},handbook_audit:{key:'handbook',label:'Staff handbook'}
  }[table]||{key:table,label:table};
 }
 function activityName(table,row){
  const d=activityData(row);
  if(table==='product_audit')return d.name||'Product';
  if(table==='booking_audit')return d.customer_name?`${d.customer_name}${d.booking_date?' · '+d.booking_date:''}${d.booking_time?' '+String(d.booking_time).slice(0,5):''}`:'Table booking';
+ if(table==='order_audit')return `${d.supplier_name||'Supplier'} order`;
  if(table==='document_audit')return d.title||d.current_file_name||'Document';
  if(table==='coshh_audit')return d.product_name||'COSHH product';
  if(table==='training_audit')return [d.person_name,d.training_name].filter(Boolean).join(' · ')||'Training record';
@@ -22,8 +23,8 @@ function activityName(table,row){
  if(table==='operations_audit')return d.organisation||d.customer_name||d.person_name||'Operations record';
  return 'Record';
 }
-function activityRecordId(table,row){return String(row.product_id||row.booking_id||row.template_id||row.training_record_id||row.section_id||row.record_id||row.id)}
-function activityAction(action){return({created:'Added',updated:'Updated',deleted:'Deleted',archived:'Archived'}[action]||String(action||'Changed').replace(/_/g,' '))}
+function activityRecordId(table,row){return String(row.product_id||row.booking_id||row.order_id||row.template_id||row.training_record_id||row.section_id||row.record_id||row.id)}
+function activityAction(action){return({created:'Added',updated:'Updated',deleted:'Deleted',archived:'Archived',sent:'Sent',cancelled:'Cancelled'}[action]||String(action||'Changed').replace(/_/g,' '))}
 function activityDate(value){return new Intl.DateTimeFormat('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value))}
 
 async function loadActivity(){
@@ -34,6 +35,7 @@ async function loadActivity(){
  const sources=[
   ['product_audit','id,product_id,action,changed_at,changed_by,previous_data,new_data'],
   ['booking_audit','id,booking_id,action,changed_at,changed_by,previous_data,new_data'],
+  ['order_audit','id,order_id,action,changed_at,changed_by,previous_data,new_data'],
   ['document_audit','id,template_id,action,changed_at,changed_by,previous_data,new_data'],
   ['coshh_audit','id,product_id,action,changed_at,changed_by,previous_data,new_data'],
   ['training_audit','id,training_record_id,action,changed_at,changed_by,previous_data,new_data'],

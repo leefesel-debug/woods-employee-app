@@ -63,6 +63,7 @@ async function applySession(session){
  if(typeof loadCoshh==='function')loaders.push(loadCoshh());
  if(typeof loadTraining==='function')loaders.push(loadTraining());
  if(typeof loadOperations==='function')loaders.push(loadOperations());
+ if(typeof loadOrders==='function')loaders.push(loadOrders());
  if(typeof loadActivity==='function'&&isAdmin)loaders.push(loadActivity());
  await Promise.all(loaders);
 }
@@ -105,13 +106,13 @@ function render(){
 }
 
 function switchView(view){
- const views=['home','bookings','allergen','forms','coshh','risk','training','handbook','contacts','complaints','accidents','activity'];
+ const views=['home','bookings','orders','allergen','forms','coshh','risk','training','handbook','contacts','complaints','accidents','activity'];
  views.forEach(name=>{
   const active=view===name;
   $('#'+name+'View').hidden=!active;
   $('#'+name+'Tab').classList.toggle('active',active);
  });
- if(view==='home')renderHome();if(view==='handbook')renderHandbook();if(view==='bookings')loadBookings();if(view==='risk'&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(view==='forms'&&typeof loadDocuments==='function')loadDocuments();if(view==='coshh'&&typeof loadCoshh==='function')loadCoshh();if(view==='training'&&typeof loadTraining==='function')loadTraining();if(view==='contacts'&&typeof loadKeyContacts==='function')loadKeyContacts();if(view==='complaints'&&typeof loadComplaints==='function')loadComplaints();if(view==='accidents'&&typeof loadAccidents==='function')loadAccidents();if(view==='activity'&&typeof loadActivity==='function')loadActivity();
+ if(view==='home')renderHome();if(view==='handbook')renderHandbook();if(view==='bookings')loadBookings();if(view==='orders'&&typeof loadOrders==='function')loadOrders();if(view==='risk'&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(view==='forms'&&typeof loadDocuments==='function')loadDocuments();if(view==='coshh'&&typeof loadCoshh==='function')loadCoshh();if(view==='training'&&typeof loadTraining==='function')loadTraining();if(view==='contacts'&&typeof loadKeyContacts==='function')loadKeyContacts();if(view==='complaints'&&typeof loadComplaints==='function')loadComplaints();if(view==='accidents'&&typeof loadAccidents==='function')loadAccidents();if(view==='activity'&&typeof loadActivity==='function')loadActivity();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderHome(){
@@ -125,6 +126,7 @@ function renderHome(){
  if(typeof updateCoshhHomeCount==='function')updateCoshhHomeCount();
  if(typeof updateTrainingHomeCount==='function')updateTrainingHomeCount();
  if(typeof updateOperationsHomeCounts==='function')updateOperationsHomeCounts();
+ if(typeof updateOrdersHomeCount==='function')updateOrdersHomeCount();
 }
 function handbookSubhead(text){
  return /^(Step \d|\d+\. (Informal|Formal|Possible)|Examples of Gross Misconduct|Appeals)$/.test(text);
@@ -336,13 +338,14 @@ async function signIn(e){
 }
 async function signOut(){await db.auth.signOut();$('#account').close()}
 
-$('#homeTab').onclick=()=>switchView('home');$('#bookingsTab').onclick=()=>switchView('bookings');$('#allergenTab').onclick=()=>switchView('allergen');$('#formsTab').onclick=()=>switchView('forms');$('#coshhTab').onclick=()=>switchView('coshh');$('#riskTab').onclick=()=>switchView('risk');$('#trainingTab').onclick=()=>switchView('training');$('#handbookTab').onclick=()=>switchView('handbook');$('#contactsTab').onclick=()=>switchView('contacts');$('#complaintsTab').onclick=()=>switchView('complaints');$('#accidentsTab').onclick=()=>switchView('accidents');$('#activityTab').onclick=()=>switchView('activity');
+$('#homeTab').onclick=()=>switchView('home');$('#bookingsTab').onclick=()=>switchView('bookings');$('#ordersTab').onclick=()=>switchView('orders');$('#allergenTab').onclick=()=>switchView('allergen');$('#formsTab').onclick=()=>switchView('forms');$('#coshhTab').onclick=()=>switchView('coshh');$('#riskTab').onclick=()=>switchView('risk');$('#trainingTab').onclick=()=>switchView('training');$('#handbookTab').onclick=()=>switchView('handbook');$('#contactsTab').onclick=()=>switchView('contacts');$('#complaintsTab').onclick=()=>switchView('complaints');$('#accidentsTab').onclick=()=>switchView('accidents');$('#activityTab').onclick=()=>switchView('activity');
 $('#activitySearch').oninput=renderActivity;$('#activitySection').onchange=renderActivity;$('#activityPeriod').onchange=renderActivity;$('#refreshActivity').onclick=loadActivity;
 $('#handbookSearch').oninput=renderHandbook;
 $('#expandHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=true);
 $('#collapseHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=false);
 $('#importHandbook').onclick=importHandbook;
 $('#bookingForm').onsubmit=saveBooking;$('#bookingDay').onchange=loadBookings;
+$('#orderDelivery').onchange=renderOrderPreview;$('#openOrderEmail').onclick=prepareOrderEmail;
 $('#accountBtn').onclick=()=>currentUser?$('#account').showModal():openAuth();
 $('#signInForm').onsubmit=signIn;$('#signOutBtn').onclick=signOut;
 $('#search').oninput=render;$('#dietary').onchange=render;$('#category').onchange=render;$('#allergen').onchange=render;
