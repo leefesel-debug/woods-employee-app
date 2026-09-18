@@ -59,6 +59,7 @@ async function applySession(session){
  initialiseBookingDates();
  const loaders=[loadProducts(),loadHandbook(),loadBookings()];
  if(typeof loadRiskAssessments==='function')loaders.push(loadRiskAssessments());
+ if(typeof loadDocuments==='function')loaders.push(loadDocuments());
  await Promise.all(loaders);
 }
 
@@ -100,10 +101,10 @@ function render(){
 }
 
 function switchView(view){
- const homeActive=view==='home',allergenActive=view==='allergen',handbookActive=view==='handbook',bookingsActive=view==='bookings',riskActive=view==='risk';
- $('#homeView').hidden=!homeActive;$('#allergenView').hidden=!allergenActive;$('#handbookView').hidden=!handbookActive;$('#bookingsView').hidden=!bookingsActive;$('#riskView').hidden=!riskActive;
- $('#homeTab').classList.toggle('active',homeActive);$('#allergenTab').classList.toggle('active',allergenActive);$('#handbookTab').classList.toggle('active',handbookActive);$('#bookingsTab').classList.toggle('active',bookingsActive);$('#riskTab').classList.toggle('active',riskActive);
- if(homeActive)renderHome();if(handbookActive)renderHandbook();if(bookingsActive)loadBookings();if(riskActive&&typeof loadRiskAssessments==='function')loadRiskAssessments();
+ const homeActive=view==='home',allergenActive=view==='allergen',handbookActive=view==='handbook',bookingsActive=view==='bookings',riskActive=view==='risk',formsActive=view==='forms';
+ $('#homeView').hidden=!homeActive;$('#allergenView').hidden=!allergenActive;$('#handbookView').hidden=!handbookActive;$('#bookingsView').hidden=!bookingsActive;$('#riskView').hidden=!riskActive;$('#formsView').hidden=!formsActive;
+ $('#homeTab').classList.toggle('active',homeActive);$('#allergenTab').classList.toggle('active',allergenActive);$('#handbookTab').classList.toggle('active',handbookActive);$('#bookingsTab').classList.toggle('active',bookingsActive);$('#riskTab').classList.toggle('active',riskActive);$('#formsTab').classList.toggle('active',formsActive);
+ if(homeActive)renderHome();if(handbookActive)renderHandbook();if(bookingsActive)loadBookings();if(riskActive&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(formsActive&&typeof loadDocuments==='function')loadDocuments();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderHome(){
@@ -113,6 +114,7 @@ function renderHome(){
  $('#homeBookingCount').textContent=currentUser?(bookings.length+' today · '+bookingCovers+' covers'):'Sign in to view';
  $('#homeHandbookCount').textContent=currentUser?(handbook.length+' sections'):'Sign in to view';
  if(typeof updateRiskHomeCount==='function')updateRiskHomeCount();
+ if(typeof updateDocumentsHomeCount==='function')updateDocumentsHomeCount();
 }
 function handbookSubhead(text){
  return /^(Step \d|\d+\. (Informal|Formal|Possible)|Examples of Gross Misconduct|Appeals)$/.test(text);
@@ -324,7 +326,7 @@ async function signIn(e){
 }
 async function signOut(){await db.auth.signOut();$('#account').close()}
 
-$('#homeTab').onclick=()=>switchView('home');$('#allergenTab').onclick=()=>switchView('allergen');$('#handbookTab').onclick=()=>switchView('handbook');$('#bookingsTab').onclick=()=>switchView('bookings');$('#riskTab').onclick=()=>switchView('risk');
+$('#homeTab').onclick=()=>switchView('home');$('#allergenTab').onclick=()=>switchView('allergen');$('#handbookTab').onclick=()=>switchView('handbook');$('#bookingsTab').onclick=()=>switchView('bookings');$('#riskTab').onclick=()=>switchView('risk');$('#formsTab').onclick=()=>switchView('forms');
 $('#handbookSearch').oninput=renderHandbook;
 $('#expandHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=true);
 $('#collapseHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=false);
