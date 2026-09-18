@@ -103,10 +103,13 @@ function render(){
 }
 
 function switchView(view){
- const homeActive=view==='home',allergenActive=view==='allergen',handbookActive=view==='handbook',bookingsActive=view==='bookings',riskActive=view==='risk',formsActive=view==='forms',coshhActive=view==='coshh',trainingActive=view==='training';
- $('#homeView').hidden=!homeActive;$('#allergenView').hidden=!allergenActive;$('#handbookView').hidden=!handbookActive;$('#bookingsView').hidden=!bookingsActive;$('#riskView').hidden=!riskActive;$('#formsView').hidden=!formsActive;$('#coshhView').hidden=!coshhActive;$('#trainingView').hidden=!trainingActive;
- $('#homeTab').classList.toggle('active',homeActive);$('#allergenTab').classList.toggle('active',allergenActive);$('#handbookTab').classList.toggle('active',handbookActive);$('#bookingsTab').classList.toggle('active',bookingsActive);$('#riskTab').classList.toggle('active',riskActive);$('#formsTab').classList.toggle('active',formsActive);$('#coshhTab').classList.toggle('active',coshhActive);$('#trainingTab').classList.toggle('active',trainingActive);
- if(homeActive)renderHome();if(handbookActive)renderHandbook();if(bookingsActive)loadBookings();if(riskActive&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(formsActive&&typeof loadDocuments==='function')loadDocuments();if(coshhActive&&typeof loadCoshh==='function')loadCoshh();if(trainingActive&&typeof loadTraining==='function')loadTraining();
+ const views=['home','bookings','allergen','forms','coshh','risk','training','handbook','contacts','complaints','accidents'];
+ views.forEach(name=>{
+  const active=view===name;
+  $('#'+name+'View').hidden=!active;
+  $('#'+name+'Tab').classList.toggle('active',active);
+ });
+ if(view==='home')renderHome();if(view==='handbook')renderHandbook();if(view==='bookings')loadBookings();if(view==='risk'&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(view==='forms'&&typeof loadDocuments==='function')loadDocuments();if(view==='coshh'&&typeof loadCoshh==='function')loadCoshh();if(view==='training'&&typeof loadTraining==='function')loadTraining();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderHome(){
@@ -330,7 +333,7 @@ async function signIn(e){
 }
 async function signOut(){await db.auth.signOut();$('#account').close()}
 
-$('#homeTab').onclick=()=>switchView('home');$('#allergenTab').onclick=()=>switchView('allergen');$('#trainingTab').onclick=()=>switchView('training');$('#handbookTab').onclick=()=>switchView('handbook');$('#bookingsTab').onclick=()=>switchView('bookings');$('#riskTab').onclick=()=>switchView('risk');$('#formsTab').onclick=()=>switchView('forms');$('#coshhTab').onclick=()=>switchView('coshh');
+$('#homeTab').onclick=()=>switchView('home');$('#bookingsTab').onclick=()=>switchView('bookings');$('#allergenTab').onclick=()=>switchView('allergen');$('#formsTab').onclick=()=>switchView('forms');$('#coshhTab').onclick=()=>switchView('coshh');$('#riskTab').onclick=()=>switchView('risk');$('#trainingTab').onclick=()=>switchView('training');$('#handbookTab').onclick=()=>switchView('handbook');$('#contactsTab').onclick=()=>switchView('contacts');$('#complaintsTab').onclick=()=>switchView('complaints');$('#accidentsTab').onclick=()=>switchView('accidents');
 $('#handbookSearch').oninput=renderHandbook;
 $('#expandHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=true);
 $('#collapseHandbook').onclick=()=>document.querySelectorAll('.handbook-section').forEach(x=>x.open=false);
