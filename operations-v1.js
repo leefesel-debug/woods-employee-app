@@ -81,7 +81,14 @@ async function saveAccident(e){e.preventDefault();if(!currentUser)return;const v
 function accidentFormValue(){return{incident_date:$('#accDate').value,incident_time:$('#accTime').value.trim(),location:$('#accLocation').value.trim(),incident_type:$('#accType').value.trim(),person_name:$('#accName').value.trim(),contact_details:$('#accContact').value.trim(),person_status:$('#accPersonStatus').value.trim(),age:$('#accAge').value.trim(),description:$('#accDescription').value.trim(),injury_nature:$('#accInjury').value.trim(),body_part:$('#accBodyPart').value.trim(),visible_injury:$('#accVisible').value.trim(),person_account:$('#accAccount').value.trim(),action_taken:$('#accAction').value.trim(),witness_names:$('#accWitnessNames').value.trim(),witness_contacts:$('#accWitnessContacts').value.trim(),witness_status:$('#accWitnessStatus').value.trim(),environmental_conditions:$('#accConditions').value.trim(),follow_up:$('#accFollowUp').value.trim(),completed_by:$('#accCompletedBy').value.trim(),completed_by_role:$('#accRole').value.trim(),status:$('#accStatus').value}}
 window.openAccidentEditor=openAccidentEditor;
 
-async function workbookRows(file){const buffer=await file.arrayBuffer(),book=XLSX.read(buffer,{type:'array',cellDates:true});return XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1,defval:'',raw:true})}
+async function readOdsRows(file){
+ const zip=await JSZip.loadAsync(await file.arrayBuffer()),entry=zip.file('content.xml');if(!entry)throw new Error('This ODS file does not contain a readable worksheet.');
+ const xml=new DOMParser().parseFromString(await entry.async('text'),'application/xml');if(xml.querySelector('parsererror'))throw new Error('The ODS worksheet could not be read.');
+ const tableNs='urn:oasis:names:tc:opendocument:xmlns:table:1.0',textNs='urn:oasis:names:tc:opendocument:xmlns:text:1.0';
+ const table=xml.getElementsByTagNameNS(tableNs,'table')[0];if(!table)throw new Error('No worksheet was found in the ODS file.');
+ const rows=[];for(const row of table.getElementsByTagNameNS(tableNs,'table-row')){const values=[];for(const cell of row.children){if(!['table-cell','covered-table-cell'].includes(cell.localName))continue;const repeat=Math.min(Number(cell.getAttributeNS(tableNs,'number-columns-repeated')||1),100);const paragraphs=[...cell.getElementsByTagNameNS(textNs,'p')].map(p=>p.textContent.trim()).filter(Boolean);const value=paragraphs.join(' | ');for(let i=0;i<repeat;i++)values.push(value)}while(values.length&&!values[values.length-1])values.pop();if(values.some(Boolean))rows.push(values)}return rows;
+}
+async function workbookRows(file){if(/\.ods$/i.test(file.name))return readOdsRows(file);const buffer=await file.arrayBuffer(),book=XLSX.read(buffer,{type:'array',cellDates:true});return XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]],{header:1,defval:'',raw:true})}
 function normHeader(v){return String(v||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'')}
 function rowObject(headers,row){const out={};headers.forEach((h,i)=>{if(h)out[normHeader(h)]=row[i]??''});return out}
 function cleanPhone(v){return String(v??'').trim()}
