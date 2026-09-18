@@ -62,6 +62,7 @@ async function applySession(session){
  if(typeof loadDocuments==='function')loaders.push(loadDocuments());
  if(typeof loadCoshh==='function')loaders.push(loadCoshh());
  if(typeof loadTraining==='function')loaders.push(loadTraining());
+ if(typeof loadOperations==='function')loaders.push(loadOperations());
  await Promise.all(loaders);
 }
 
@@ -109,7 +110,7 @@ function switchView(view){
   $('#'+name+'View').hidden=!active;
   $('#'+name+'Tab').classList.toggle('active',active);
  });
- if(view==='home')renderHome();if(view==='handbook')renderHandbook();if(view==='bookings')loadBookings();if(view==='risk'&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(view==='forms'&&typeof loadDocuments==='function')loadDocuments();if(view==='coshh'&&typeof loadCoshh==='function')loadCoshh();if(view==='training'&&typeof loadTraining==='function')loadTraining();
+ if(view==='home')renderHome();if(view==='handbook')renderHandbook();if(view==='bookings')loadBookings();if(view==='risk'&&typeof loadRiskAssessments==='function')loadRiskAssessments();if(view==='forms'&&typeof loadDocuments==='function')loadDocuments();if(view==='coshh'&&typeof loadCoshh==='function')loadCoshh();if(view==='training'&&typeof loadTraining==='function')loadTraining();if(view==='contacts'&&typeof loadKeyContacts==='function')loadKeyContacts();if(view==='complaints'&&typeof loadComplaints==='function')loadComplaints();if(view==='accidents'&&typeof loadAccidents==='function')loadAccidents();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 function renderHome(){
@@ -122,6 +123,7 @@ function renderHome(){
  if(typeof updateDocumentsHomeCount==='function')updateDocumentsHomeCount();
  if(typeof updateCoshhHomeCount==='function')updateCoshhHomeCount();
  if(typeof updateTrainingHomeCount==='function')updateTrainingHomeCount();
+ if(typeof updateOperationsHomeCounts==='function')updateOperationsHomeCounts();
 }
 function handbookSubhead(text){
  return /^(Step \d|\d+\. (Informal|Formal|Possible)|Examples of Gross Misconduct|Appeals)$/.test(text);
