@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#5b725d"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0">
-<title>Woods Team Hub – Build 23</title>
+<title>Woods Team Hub – Build 24</title>
 <link rel="icon" href="woods-logo.svg?v=1" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest?v=1">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Woods Hub">
+<script>
+(()=>{const current='24';async function checkVersion(){try{const response=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const latest=await response.json();if(String(latest.build)!==current&&latest.url)location.replace(latest.url+'?build='+encodeURIComponent(latest.build)+'&refresh='+Date.now())}catch{}}window.addEventListener('pageshow',checkVersion);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()})})();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#263d2c;--green:#5b725d;--green-dark:#405643;--green-pale:#edf1ed;--cream:#f8f5ed;--paper:#fff;--gold:#dfaf3f;--red:#b42318;--muted:#667369;--line:#d8dfd8;--shadow:0 12px 35px rgba(50,72,53,.12)}html{scroll-behavior:smooth}
@@ -56,7 +61,7 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 </section>
 <section class="view" id="allergenView" hidden>
 <p class="notice"><strong>Always check.</strong> Recipes and supplier ingredients can change. If you are uncertain, pause the order and confirm with a manager.</p>
-<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history. <strong>Build 23</strong></p><div class="file"><button class="btn primary" id="importBtn">Load Woods data</button><button class="btn" id="addBtn">Quick add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
+<section class="panel" id="adminPanel" hidden><h2>Manage allergen data</h2><p>Changes made here update the shared staff matrix and are recorded in the audit history. <strong>Build 24</strong></p><div class="file"><button class="btn primary" id="importBtn">Load Woods data</button><button class="btn" id="addBtn">Quick add product</button><button class="btn" id="exportBtn">Export backup</button></div></section>
 <div class="toolbar"><input class="search" id="search" type="search" placeholder="Search product, category or allergen…" autocomplete="off"><select class="filter" id="dietary"><option value="">All dietary options</option><option value="vegan">Vegan</option><option value="gf">Gluten free</option><option value="both">Vegan &amp; gluten free</option></select><select class="filter" id="category"><option value="">All categories</option></select><select class="filter" id="allergen"><option value="">All allergens</option></select></div>
 <div class="stats"><span class="chip" id="count">0 products</span><span class="chip" id="syncState">Connecting…</span></div><div class="grid" id="grid"></div>
 </section>
@@ -148,5 +153,5 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
-<script src="config.js?v=7"></script><script src="app-v16.js?v=23"></script><script src="risk-v1.js?v=1"></script><script src="documents-v1.js?v=1"></script><script src="coshh-v1.js?v=1"></script><script src="training-v1.js?v=1"></script>
+<script src="config.js?v=7"></script><script src="app-v16.js?v=24"></script><script src="risk-v1.js?v=1"></script><script src="documents-v1.js?v=1"></script><script src="coshh-v1.js?v=1"></script><script src="training-v1.js?v=1"></script>
 </body></html>
