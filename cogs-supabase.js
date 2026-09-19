@@ -1,4 +1,4 @@
-// Woods COGS Supabase adapter v1
+// Woods COGS Supabase adapter v2 — admin restricted
 const cogsCfg=window.WOODS_CONFIG||{};
 const cogsDb=window.supabase?.createClient(cogsCfg.supabaseUrl,cogsCfg.supabaseAnonKey);
 let cogsUser=null,cogsRemoteReady=false,cogsSyncing=false;
@@ -48,11 +48,19 @@ function installRemotePersistence(){
  const oldRecipeRemove=window.recipeRemove;window.recipeRemove=function(...args){oldRecipeRemove(...args);cogsPushRemote()};
  const oldRecipeAdd=window.recipeAdd;window.recipeAdd=function(...args){oldRecipeAdd(...args);cogsPushRemote()};
 }
+function cogsDeny(message){
+ const root=document.getElementById('cogsRoot');
+ if(root)root.innerHTML='<div class="cards"><article><h2>Admin access only</h2><p>'+message+'</p><p><button class="primary" onclick="location.href=\'v16.html\'">Back to Woods Team Hub</button></p></article></div>';
+ cogsBanner('Restricted workspace','error');
+}
 async function cogsStart(){
  if(!cogsDb){cogsBanner('Supabase library/config missing','error');return}
  const {data:{session}}=await cogsDb.auth.getSession();cogsUser=session?.user||null;
- if(!cogsUser){cogsBanner('Sign in to Woods Team Hub first, then reopen COGS.','error');return}
+ if(!cogsUser){cogsDeny('Sign in to Woods Team Hub with an administrator account first.');return}
+ const {data:profile,error:profileError}=await cogsDb.from('profiles').select('role').eq('id',cogsUser.id).maybeSingle();
+ if(profileError){cogsDeny('Your access level could not be verified. Return to the Team Hub and try again.');return}
+ if(profile?.role!=='admin'){cogsUser=null;cogsDeny('Cost of Goods is restricted to Woods administrators.');return}
  cogsBanner('Connecting to shared COGS data…');
- try{await cogsLoadRemote();installRemotePersistence();render();cogsBanner('Shared Supabase data connected','ok')}catch(e){console.error(e);cogsBanner('Supabase connection failed: '+(e.message||e),'error')}
+ try{await cogsLoadRemote();installRemotePersistence();render();cogsBanner('Shared Supabase data connected · Admin','ok')}catch(e){console.error(e);cogsBanner('Supabase connection failed: '+(e.message||e),'error')}
 }
 window.addEventListener('DOMContentLoaded',cogsStart);
