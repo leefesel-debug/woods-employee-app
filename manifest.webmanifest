@@ -2,7 +2,7 @@
   "name": "Woods Team Hub",
   "short_name": "Woods Hub",
   "description": "The Woods Coffee Shop employee hub",
-  "start_url": "./v16.html?source=app&build=40",
+  "start_url": "./v16.html?source=app&build=39&launch=2",
   "scope": "./",
   "display": "standalone",
   "background_color": "#f8f5ed",
