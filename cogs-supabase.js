@@ -1,7 +1,7 @@
-// Woods COGS Supabase adapter v3 — admin restricted
+// Woods COGS Supabase adapter v4 — admin restricted
 const cogsCfg=window.WOODS_CONFIG||{};
 const cogsDb=window.supabase?.createClient(cogsCfg.supabaseUrl,cogsCfg.supabaseAnonKey);
-let cogsUser=null,cogsRemoteReady=false,cogsSyncing=false;
+let cogsUser=null,cogsRemoteReady=false,cogsSyncing=false,cogsSyncPending=false;
 
 function remoteShape(){return {
  ingredients:data.ingredients.map(i=>({id:i.id,name:i.name,unit:i.unit||'each',pack_cost:i.packCost==null?null:Number(i.packCost),pack_qty:i.packQty==null?null:Number(i.packQty),active:i.active!==false})),
@@ -36,7 +36,11 @@ async function cogsDeleteMissingIngredients(localIngredients){
  }
 }
 async function cogsPushRemote(){
- if(!cogsRemoteReady||cogsSyncing||!cogsUser)return;
+ if(!cogsRemoteReady||!cogsUser)return;
+ // Never drop a save just because another save is already running. This mattered
+ // particularly for rapid edits/deletes: the local row disappeared, but the delete
+ // could be skipped and Supabase would restore it on the next refresh.
+ if(cogsSyncing){cogsSyncPending=true;return}
  cogsSyncing=true;
  try{
   const s=remoteShape();
@@ -44,12 +48,13 @@ async function cogsPushRemote(){
   q=await cogsDb.from('cogs_menu_items').upsert(s.menu);if(q.error)throw q.error;
   const ids=s.menu.map(x=>x.id);if(ids.length){q=await cogsDb.from('cogs_recipes').delete().in('menu_item_id',ids);if(q.error)throw q.error}
   if(s.recipes.length){q=await cogsDb.from('cogs_recipes').insert(s.recipes);if(q.error)throw q.error}
-  // Reconcile master ingredients as well as upserting them. Previously a deleted
-  // browser row was never deleted from Supabase, so it reappeared on refresh.
   await cogsDeleteMissingIngredients(s.ingredients);
   for(const a of s.addons){q=await cogsDb.from('cogs_addons').upsert(a,{onConflict:'name'});if(q.error)throw q.error}
   cogsBanner('Saved to Supabase','ok');
- }catch(e){console.error(e);cogsBanner('Save failed: '+(e.message||e),'error')}finally{cogsSyncing=false}
+ }catch(e){console.error(e);cogsBanner('Save failed: '+(e.message||e),'error')}finally{
+  cogsSyncing=false;
+  if(cogsSyncPending){cogsSyncPending=false;setTimeout(cogsPushRemote,0)}
+ }
 }
 function cogsBanner(text,tone=''){let el=document.getElementById('cogsSync');if(!el){el=document.createElement('p');el.id='cogsSync';el.className='note';document.querySelector('.hero')?.appendChild(el)}el.textContent=text;el.style.color=tone==='error'?'#8a1c13':tone==='ok'?'#dff5e5':''}
 function installRemotePersistence(){
