@@ -1,4 +1,4 @@
-// Woods COGS Supabase adapter v2 — admin restricted
+// Woods COGS Supabase adapter v3 — admin restricted
 const cogsCfg=window.WOODS_CONFIG||{};
 const cogsDb=window.supabase?.createClient(cogsCfg.supabaseUrl,cogsCfg.supabaseAnonKey);
 let cogsUser=null,cogsRemoteReady=false,cogsSyncing=false;
@@ -27,6 +27,14 @@ async function cogsSeedRemote(){
  if(s.recipes.length){q=await cogsDb.from('cogs_recipes').upsert(s.recipes,{onConflict:'menu_item_id,ingredient_id'});if(q.error)throw q.error}
  if(s.addons.length){q=await cogsDb.from('cogs_addons').upsert(s.addons,{onConflict:'name'});if(q.error)throw q.error}
 }
+async function cogsDeleteMissingIngredients(localIngredients){
+ const remote=await cogsDb.from('cogs_ingredients').select('id');if(remote.error)throw remote.error;
+ const keep=new Set(localIngredients.map(i=>i.id));
+ const stale=(remote.data||[]).map(i=>i.id).filter(id=>!keep.has(id));
+ for(const id of stale){
+  const q=await cogsDb.from('cogs_ingredients').delete().eq('id',id);if(q.error)throw q.error;
+ }
+}
 async function cogsPushRemote(){
  if(!cogsRemoteReady||cogsSyncing||!cogsUser)return;
  cogsSyncing=true;
@@ -36,6 +44,9 @@ async function cogsPushRemote(){
   q=await cogsDb.from('cogs_menu_items').upsert(s.menu);if(q.error)throw q.error;
   const ids=s.menu.map(x=>x.id);if(ids.length){q=await cogsDb.from('cogs_recipes').delete().in('menu_item_id',ids);if(q.error)throw q.error}
   if(s.recipes.length){q=await cogsDb.from('cogs_recipes').insert(s.recipes);if(q.error)throw q.error}
+  // Reconcile master ingredients as well as upserting them. Previously a deleted
+  // browser row was never deleted from Supabase, so it reappeared on refresh.
+  await cogsDeleteMissingIngredients(s.ingredients);
   for(const a of s.addons){q=await cogsDb.from('cogs_addons').upsert(a,{onConflict:'name'});if(q.error)throw q.error}
   cogsBanner('Saved to Supabase','ok');
  }catch(e){console.error(e);cogsBanner('Save failed: '+(e.message||e),'error')}finally{cogsSyncing=false}
