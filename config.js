@@ -27,4 +27,48 @@ window.addEventListener('DOMContentLoaded',()=>{
   };
   installCogsAccess();
   new MutationObserver(installCogsAccess).observe(document.body,{attributes:true,attributeFilter:['class']});
+
+  // Self-service password recovery for all staff.
+  const authForm=document.getElementById('signInForm');
+  const emailInput=document.getElementById('email');
+  const authError=document.getElementById('authError');
+  if(authForm&&emailInput&&authError){
+    const actions=authForm.querySelector('.dialog-actions');
+    const forgot=document.createElement('button');
+    forgot.type='button';
+    forgot.id='forgotPasswordBtn';
+    forgot.className='btn';
+    forgot.textContent='Forgot password?';
+    forgot.style.marginRight='auto';
+    actions.prepend(forgot);
+
+    forgot.addEventListener('click',async()=>{
+      const email=emailInput.value.trim();
+      authError.textContent='';
+      if(!email){
+        authError.textContent='Enter your email address first, then tap Forgot password?';
+        emailInput.focus();
+        return;
+      }
+      forgot.disabled=true;
+      const original=forgot.textContent;
+      forgot.textContent='Sending…';
+      try{
+        const client=window.supabase.createClient(window.WOODS_CONFIG.supabaseUrl,window.WOODS_CONFIG.supabaseAnonKey);
+        const redirectTo=new URL('v16.html',window.location.href).href.split('?')[0];
+        const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});
+        if(error)throw error;
+        authError.style.color='#17633a';
+        authError.textContent='Password reset email sent. Check your inbox and junk folder.';
+      }catch(error){
+        authError.style.color='var(--red)';
+        authError.textContent=error?.message||'Could not send the reset email. Please try again.';
+      }finally{
+        forgot.disabled=false;
+        forgot.textContent=original;
+      }
+    });
+
+    emailInput.addEventListener('input',()=>{authError.style.color='var(--red)'});
+  }
 });
