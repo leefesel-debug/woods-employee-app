@@ -13,7 +13,7 @@ window.loadActivity=loadActivity;
 
 /* Allergen Register v2: shared Supabase persistence + visible product information */
 window.addEventListener('DOMContentLoaded',()=>{
- const cols={Celery:'celery','Cereals containing gluten':'cereals_gluten',Crustaceans:'crustaceans',Eggs:'eggs',Fish:'fish',Lupin:'lupin',Milk:'milk',Molluscs:'molluscs',Mustard:'mustard',Nuts:'nuts',Peanuts:'peanuts',Sesame:'sesame',Soya:'soya',Sulphites:'sulphites'};
+ const cols={Celery:'celery','Cereals containing gluten':'cereals_gluten',Crustaceans:'crustaceans',Eggs:'eggs',Fish:'fish',Lupin:'lupin',Milk:'milk',Molluscs:'molluscs',Mustard:'mustard',Nuts:'nuts',Peanuts:'peanuts',Sesame:'sesame',Soya:'soya',Sulphites:'sulphites',Wheat:'wheat',Rye:'rye',Barley:'barley',Oats:'oats',Spelt:'spelt',Khorasan:'khorasan'};
  const toItem=r=>({...r,allergens:Object.entries(cols).filter(([a,c])=>r[c]).map(([a])=>a)});
  const toRow=x=>{const r={name:x.name,category:x.category||'Other',notes:x.notes||'',active:x.active!==false,updated_by:currentUser?.id};Object.entries(cols).forEach(([a,c])=>r[c]=matchesAllergen(x,a));return r};
  async function seedAllergens(){if(!isAdmin)return false;const old=await db.from('products').select('name,category,allergens,notes,active').eq('active',true);if(old.error||!old.data?.length)return false;const seen=new Set(),rows=[];for(const x of old.data){const k=String(x.name).trim().toLowerCase();if(!k||seen.has(k))continue;seen.add(k);rows.push({...toRow(x),created_by:currentUser.id})}for(let i=0;i<rows.length;i+=75){const q=await db.from('allergen_products').insert(rows.slice(i,i+75));if(q.error)throw q.error}return true}
