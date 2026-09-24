@@ -56,7 +56,8 @@ window.addEventListener('DOMContentLoaded',()=>{
     emailInput.addEventListener('input',()=>{authError.style.color='var(--red)'});
   }
 
-  // Allergen matrix enhancements: Vegetarian dietary flag and recent-product sorting.
+  // Allergen matrix enhancements: three-state Vegetarian status and recent-product sorting.
+  // Vegan always implies Vegetarian. Existing non-vegan products remain Not confirmed until reviewed.
   const editor=document.getElementById('editor');
   const editForm=document.getElementById('editForm');
   const notesInput=document.getElementById('notes');
@@ -67,9 +68,14 @@ window.addEventListener('DOMContentLoaded',()=>{
   const grid=document.getElementById('grid');
   if(editor&&editForm&&notesInput&&veganInput&&glutenFreeInput&&dietary&&toolbar&&grid){
     const quickFlags=veganInput.closest('.quick-flags');
-    let vegetarian=document.getElementById('vegetarian');
-    if(quickFlags&&!vegetarian){
-      const label=document.createElement('label');label.className='quick-flag';label.innerHTML='<input id="vegetarian" type="checkbox"> Vegetarian';quickFlags.appendChild(label);vegetarian=label.querySelector('input');quickFlags.style.gridTemplateColumns='repeat(auto-fit,minmax(145px,1fr))';
+    let vegetarianStatus=document.getElementById('vegetarianStatus');
+    if(quickFlags&&!vegetarianStatus){
+      const label=document.createElement('label');
+      label.className='quick-flag vegetarian-control';
+      label.innerHTML='<span>Vegetarian</span><select id="vegetarianStatus" aria-label="Vegetarian status"><option value="unknown">Not confirmed</option><option value="yes">Yes</option><option value="no">No</option></select>';
+      quickFlags.appendChild(label);
+      vegetarianStatus=label.querySelector('select');
+      quickFlags.style.gridTemplateColumns='repeat(auto-fit,minmax(145px,1fr))';
     }
 
     const sort=document.createElement('select');
@@ -77,7 +83,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     sort.innerHTML='<option value="default">Sort: Default</option><option value="recent">Recently added</option><option value="updated">Recently changed</option>';
     toolbar.appendChild(sort);toolbar.style.gridTemplateColumns='minmax(240px,1fr) repeat(4,auto)';
     const style=document.createElement('style');
-    style.textContent='@media(max-width:760px){#allergenView .toolbar{grid-template-columns:1fr 1fr!important}#allergenView .toolbar .search{grid-column:1/-1}#allergenView #productSort{grid-column:1/-1}.quick-flags{grid-template-columns:1fr!important}}';
+    style.textContent='.vegetarian-control{display:grid!important;grid-template-columns:1fr;gap:5px}.vegetarian-control select{width:100%;border:1px solid #cbd5d0;border-radius:8px;background:#fff;padding:7px 8px;color:var(--ink)}.diet.vegetarian.unknown{background:#eef1ef;color:#66756f;border:1px solid #dfe5e1}@media(max-width:760px){#allergenView .toolbar{grid-template-columns:1fr 1fr!important}#allergenView .toolbar .search{grid-column:1/-1}#allergenView #productSort{grid-column:1/-1}.quick-flags{grid-template-columns:1fr!important}}';
     document.head.appendChild(style);
 
     const client=window.supabase.createClient(window.WOODS_CONFIG.supabaseUrl,window.WOODS_CONFIG.supabaseAnonKey);
@@ -86,7 +92,9 @@ window.addEventListener('DOMContentLoaded',()=>{
     let applying=false;
     let originalOrder=[];
 
-    const isVegetarianNotes=notes=>/\bVegetarian:\s*Yes\b/i.test(String(notes||''));
+    const vegetarianMarker=notes=>{const m=String(notes||'').match(/\bVegetarian:\s*(Yes|No|Not confirmed)\b/i);if(!m)return'unknown';return/^yes$/i.test(m[1])?'yes':/^no$/i.test(m[1])?'no':'unknown'};
+    const isVeganNotes=notes=>/\bVegan:\s*Yes\b/i.test(String(notes||''));
+    const vegetarianForNotes=notes=>isVeganNotes(notes)?'yes':vegetarianMarker(notes);
     const stripVegetarian=notes=>String(notes||'').split('·').map(x=>x.trim()).filter(x=>x&&!/^Vegetarian:/i.test(x)).join(' · ');
     const normaliseName=value=>String(value||'').trim().toLocaleLowerCase('en-GB').replace(/\s+/g,' ');
     const cardId=card=>{
@@ -112,8 +120,6 @@ window.addEventListener('DOMContentLoaded',()=>{
     };
 
     async function loadProductMeta(){
-      // The visible allergen register is allergen_products (activity-v1.js), so sorting
-      // must use timestamps from that same live table rather than the legacy products table.
       let result=await client.from('allergen_products').select('id,name,notes,created_at,updated_at').eq('active',true);
       if(result.error&&/created_at/i.test(result.error.message||''))result=await client.from('allergen_products').select('id,name,notes,updated_at').eq('active',true);
       if(result.error){productMeta=new Map();productMetaByName=new Map();applyEnhancements();return}
@@ -133,8 +139,12 @@ window.addEventListener('DOMContentLoaded',()=>{
           const meta=metaForCard(card);
           if(meta){
             const dietaryRow=card.querySelector('.dietary');
-            if(dietaryRow&&!dietaryRow.querySelector('.diet.vegetarian')){
-              const badge=document.createElement('span');const yes=isVegetarianNotes(meta.notes);badge.className='diet vegetarian '+(yes?'yes':'no');badge.textContent=yes?'✓ Vegetarian':'Not vegetarian';dietaryRow.appendChild(badge);
+            let badge=dietaryRow?.querySelector('.diet.vegetarian');
+            if(dietaryRow&&!badge){badge=document.createElement('span');dietaryRow.appendChild(badge)}
+            if(badge){
+              const status=vegetarianForNotes(meta.notes);
+              badge.className='diet vegetarian '+(status==='yes'?'yes':status==='no'?'no':'unknown');
+              badge.textContent=status==='yes'?'✓ Vegetarian':status==='no'?'Not vegetarian':'Vegetarian · Not confirmed';
             }
           }
           const notesEl=card.querySelector('.notes');if(notesEl){const cleaned=stripVegetarian(notesEl.textContent);if(cleaned)notesEl.textContent=cleaned;else notesEl.remove()}
@@ -156,14 +166,34 @@ window.addEventListener('DOMContentLoaded',()=>{
     sort.addEventListener('change',async()=>{sort.disabled=true;try{await loadProductMeta();applyEnhancements()}finally{sort.disabled=false}});
     ['search','category','allergen'].forEach(id=>document.getElementById(id)?.addEventListener(id==='search'?'input':'change',()=>setTimeout(applyEnhancements,0)));
 
+    // Vegan is a subset of vegetarian: selecting Vegan automatically locks Vegetarian to Yes.
+    const syncVeganVegetarian=()=>{
+      if(!vegetarianStatus)return;
+      if(veganInput.checked){vegetarianStatus.value='yes';vegetarianStatus.disabled=true}
+      else vegetarianStatus.disabled=false;
+    };
+    veganInput.addEventListener('change',()=>{
+      if(veganInput.checked&&vegetarianStatus)vegetarianStatus.value='yes';
+      syncVeganVegetarian();
+    });
+
     const originalSubmit=editForm.onsubmit;
     editForm.onsubmit=e=>{
-      const clean=stripVegetarian(notesInput.value);notesInput.value='Vegetarian: '+(vegetarian?.checked?'Yes':'No')+(clean?' · '+clean:'');
+      const clean=stripVegetarian(notesInput.value);
+      const status=veganInput.checked?'yes':(vegetarianStatus?.value||'unknown');
+      const marker=status==='yes'?'Yes':status==='no'?'No':'Not confirmed';
+      notesInput.value='Vegetarian: '+marker+(clean?' · '+clean:'');
       const result=typeof originalSubmit==='function'?originalSubmit.call(editForm,e):undefined;
       Promise.resolve(result).finally(()=>setTimeout(loadProductMeta,250));return result;
     };
 
-    const syncEditor=()=>{if(!editor.hasAttribute('open')||!vegetarian)return;vegetarian.checked=isVegetarianNotes(notesInput.value);notesInput.value=stripVegetarian(notesInput.value)};
+    const syncEditor=()=>{
+      if(!editor.hasAttribute('open')||!vegetarianStatus)return;
+      const existing=vegetarianForNotes(notesInput.value);
+      vegetarianStatus.value=veganInput.checked?'yes':existing;
+      notesInput.value=stripVegetarian(notesInput.value);
+      syncVeganVegetarian();
+    };
     new MutationObserver(syncEditor).observe(editor,{attributes:true,attributeFilter:['open']});
     new MutationObserver(()=>setTimeout(applyEnhancements,0)).observe(grid,{childList:true,subtree:true});
     client.auth.onAuthStateChange(()=>setTimeout(loadProductMeta,100));
