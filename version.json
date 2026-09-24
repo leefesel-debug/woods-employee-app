@@ -1,5 +1,5 @@
 {
   "build": "39",
-  "url": "v16.html",
-  "deployment": "build-39-refresh-loop-fix"
+  "deployment": "v2-stabilisation",
+  "automaticRedirect": false
 }
