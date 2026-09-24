@@ -112,8 +112,10 @@ window.addEventListener('DOMContentLoaded',()=>{
     };
 
     async function loadProductMeta(){
-      let result=await client.from('products').select('id,name,notes,created_at,updated_at').eq('active',true);
-      if(result.error&&/created_at/i.test(result.error.message||''))result=await client.from('products').select('id,name,notes,updated_at').eq('active',true);
+      // The visible allergen register is allergen_products (activity-v1.js), so sorting
+      // must use timestamps from that same live table rather than the legacy products table.
+      let result=await client.from('allergen_products').select('id,name,notes,created_at,updated_at').eq('active',true);
+      if(result.error&&/created_at/i.test(result.error.message||''))result=await client.from('allergen_products').select('id,name,notes,updated_at').eq('active',true);
       if(result.error){productMeta=new Map();productMetaByName=new Map();applyEnhancements();return}
       const rows=result.data||[];
       productMeta=new Map(rows.map(x=>[String(x.id),x]));
