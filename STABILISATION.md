@@ -4,6 +4,15 @@
 
 Make future Woods Hub releases safer without changing the live team's current workflow or production data.
 
+## Current status
+
+- Phase 1 repository clean-up: complete on `v2-stabilisation`.
+- Phase 2 release/cache simplification: first stabilisation pass complete.
+- Production `main`: unchanged.
+- Automated static release checks: enabled for pushes to `v2-stabilisation` and pull requests to `main`.
+- First automated validation run: passed.
+- Manual iPhone / installed-app smoke test: still required before any production merge.
+
 ## Guardrails
 
 1. `main` is production. Do not use it for experiments.
@@ -15,26 +24,30 @@ Make future Woods Hub releases safer without changing the live team's current wo
 
 ## Phase 1 — repository clean-up
 
-- Document the actual current architecture.
-- Remove obsolete `v7`–`v15` HTML/JavaScript release copies from the V2 branch after confirming the current entry point only uses V16.
-- Remove duplicate legacy `app.js` once no active page references it.
-- Retain V16, feature modules, Supabase scripts, current app icons and COGS files.
-- Keep test utilities only where they still serve an explicit test purpose.
+Completed on the V2 branch:
+
+- Documented the current architecture.
+- Removed obsolete `v7`–`v15` HTML/JavaScript release copies after confirming the current entry point uses V16.
+- Removed duplicate legacy `app.js`.
+- Retained V16, feature modules, Supabase scripts, current V2 app icons and COGS files.
+- Removed superseded first-generation app icons.
 
 ## Phase 2 — release and cache simplification
 
-Current Build 39 has several version signals: the index redirect, manifest start URL, page build number, `version.json`, and JavaScript query strings. This worked during rapid prototyping but creates opportunities for partial deployments and refresh loops.
+Build 39 had several version signals: the index redirect, manifest start URL, page build number, `version.json`, and JavaScript query strings. This worked during rapid prototyping but created opportunities for partial deployments and refresh loops.
 
-V2 target:
+First V2 stabilisation pass completed:
 
-- one canonical app entry point;
-- one release/build constant;
-- asset cache-busting generated from that release;
-- no automatic redirect loop while a signed-in user is using the app;
-- update prompt or controlled refresh rather than forced repeated navigation;
-- preserve Supabase auth/session storage across ordinary releases.
+- `index.html` is the stable public entry point.
+- Removed the duplicate HTML meta refresh from `index.html`; entry now performs one controlled redirect to the current app page.
+- Entry redirect preserves query parameters and URL fragments so authentication/recovery callback data is not discarded.
+- Installed-app `start_url` now points to the stable root entry rather than a numbered build URL.
+- Legacy automatic version navigation is disabled by removing the redirect URL from `version.json`; the existing V16 checker can therefore no longer force a user to another page.
+- Existing Supabase auth/session implementation and production data structures remain unchanged.
+- Added `scripts/validate-release.mjs` to guard the release structure.
+- Added GitHub Actions validation for V2 pushes and pull requests to `main`.
 
-This phase must be tested on the V2 branch before any production merge.
+Remaining Phase 2 work is deliberately limited until device testing: remove the now-redundant V16 version-check code and consolidate residual asset version strings only after the branch has passed the real iPhone/PWA smoke test.
 
 ## Phase 3 — code ownership
 
@@ -67,6 +80,20 @@ Before V2 can be considered for `main`, test on iPhone Safari and installed Home
 - Activity log loads for admin.
 - COGS opens for admin and ingredient edits persist.
 - Closing/reopening the app does not flash, loop or force an unexpected sign-out.
+
+## Automated checks
+
+`node scripts/validate-release.mjs` checks that:
+
+- required current files and feature modules exist;
+- obsolete numbered V7–V15 app files have not returned;
+- the entry point has no meta-refresh loop;
+- auth query/hash data is preserved by the entry redirect;
+- the PWA starts from the stable root;
+- the legacy forced version redirect remains disabled;
+- V16 still references all expected feature modules.
+
+These checks reduce release risk but do not replace the manual signed-in device smoke test.
 
 ## Rollback
 
