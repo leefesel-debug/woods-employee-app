@@ -98,7 +98,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     sort.className='filter';
     sort.id='productSort';
     sort.setAttribute('aria-label','Sort products');
-    sort.innerHTML='<option value="default">Sort: Default</option><option value="recent">Recently added</option><option value="updated">Recently updated</option>';
+    sort.innerHTML='<option value="default">Sort: Default</option><option value="recent">Recently added</option><option value="updated">Recently changed</option>';
     toolbar.appendChild(sort);
     toolbar.style.gridTemplateColumns='minmax(240px,1fr) repeat(4,auto)';
 
@@ -109,6 +109,7 @@ window.addEventListener('DOMContentLoaded',()=>{
     const client=window.supabase.createClient(window.WOODS_CONFIG.supabaseUrl,window.WOODS_CONFIG.supabaseAnonKey);
     let productMeta=new Map();
     let applying=false;
+    let originalOrder=[];
 
     const isVegetarianNotes=notes=>/\bVegetarian:\s*Yes\b/i.test(String(notes||''));
     const stripVegetarian=notes=>String(notes||'').split('·').map(x=>x.trim()).filter(x=>x&&!/^Vegetarian:/i.test(x)).join(' · ');
@@ -117,15 +118,27 @@ window.addEventListener('DOMContentLoaded',()=>{
       const match=button?.getAttribute('onclick')?.match(/editItem\(['\"]([^'\"]+)['\"]\)/);
       return match?.[1]||'';
     };
+    const cardUpdatedTime=card=>{
+      const text=[...card.querySelectorAll('.category')].map(x=>x.textContent||'').find(x=>/Last checked \/ updated:/i.test(x))||'';
+      const raw=text.replace(/^.*Last checked \/ updated:\s*/i,'').trim();
+      if(!raw||/not yet/i.test(raw))return 0;
+      const months={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+      const m=raw.match(/(\d{1,2})\s+([A-Z][a-z]{2})\s+(\d{4})/);
+      return m?new Date(Number(m[3]),months[m[2]]??0,Number(m[1])).getTime():0;
+    };
 
     async function loadProductMeta(){
-      const {data:{session}}=await client.auth.getSession();
-      if(!session){productMeta=new Map();return}
+      // Do not gate this on a second client's getSession(): on installed iOS/PWA builds
+      // that can briefly report no session even though the main app is already signed in.
       let result=await client.from('products').select('id,name,notes,created_at,updated_at').eq('active',true);
       if(result.error&&/created_at/i.test(result.error.message||'')){
         result=await client.from('products').select('id,name,notes,updated_at').eq('active',true);
       }
-      if(result.error)return;
+      if(result.error){
+        productMeta=new Map();
+        applyEnhancements();
+        return;
+      }
       productMeta=new Map((result.data||[]).map(x=>[String(x.id),x]));
       applyEnhancements();
     }
@@ -135,35 +148,46 @@ window.addEventListener('DOMContentLoaded',()=>{
       applying=true;
       try{
         const cards=[...grid.querySelectorAll('.card')];
+        if(cards.length&&!originalOrder.length)originalOrder=cards.map(cardId).filter(Boolean);
         cards.forEach(card=>{
           const meta=productMeta.get(cardId(card));
-          if(!meta)return;
-          const dietaryRow=card.querySelector('.dietary');
-          if(dietaryRow&&!dietaryRow.querySelector('.diet.vegetarian')){
-            const badge=document.createElement('span');
-            const yes=isVegetarianNotes(meta.notes);
-            badge.className='diet vegetarian '+(yes?'yes':'no');
-            badge.textContent=yes?'✓ Vegetarian':'Not vegetarian';
-            dietaryRow.appendChild(badge);
+          if(meta){
+            const dietaryRow=card.querySelector('.dietary');
+            if(dietaryRow&&!dietaryRow.querySelector('.diet.vegetarian')){
+              const badge=document.createElement('span');
+              const yes=isVegetarianNotes(meta.notes);
+              badge.className='diet vegetarian '+(yes?'yes':'no');
+              badge.textContent=yes?'✓ Vegetarian':'Not vegetarian';
+              dietaryRow.appendChild(badge);
+            }
           }
           const notesEl=card.querySelector('.notes');
           if(notesEl){const cleaned=stripVegetarian(notesEl.textContent);if(cleaned)notesEl.textContent=cleaned;else notesEl.remove()}
         });
 
-        if(sort.value!=='default'){
+        let sorted=[...cards];
+        if(sort.value==='default'&&originalOrder.length){
+          const rank=new Map(originalOrder.map((id,index)=>[id,index]));
+          sorted.sort((a,b)=>(rank.get(cardId(a))??999999)-(rank.get(cardId(b))??999999));
+        }else if(sort.value!=='default'){
           const key=sort.value==='recent'?'created_at':'updated_at';
-          const sorted=[...cards].sort((a,b)=>{
-            const av=productMeta.get(cardId(a))?.[key]||productMeta.get(cardId(a))?.updated_at||'';
-            const bv=productMeta.get(cardId(b))?.[key]||productMeta.get(cardId(b))?.updated_at||'';
-            return new Date(bv||0)-new Date(av||0);
+          sorted.sort((a,b)=>{
+            const am=productMeta.get(cardId(a)),bm=productMeta.get(cardId(b));
+            const av=am?.[key]||am?.updated_at||'';
+            const bv=bm?.[key]||bm?.updated_at||'';
+            const at=av?new Date(av).getTime():cardUpdatedTime(a);
+            const bt=bv?new Date(bv).getTime():cardUpdatedTime(b);
+            return (bt||0)-(at||0);
           });
-          if(sorted.some((card,index)=>card!==cards[index]))sorted.forEach(card=>grid.appendChild(card));
         }
-
+        if(sorted.some((card,index)=>card!==cards[index]))sorted.forEach(card=>grid.appendChild(card));
       }finally{applying=false}
     }
 
-    sort.addEventListener('change',applyEnhancements);
+    sort.addEventListener('change',async()=>{
+      sort.disabled=true;
+      try{await loadProductMeta();applyEnhancements()}finally{sort.disabled=false}
+    });
     ['search','category','allergen'].forEach(id=>document.getElementById(id)?.addEventListener(id==='search'?'input':'change',()=>setTimeout(applyEnhancements,0)));
 
     const originalSubmit=editForm.onsubmit;
