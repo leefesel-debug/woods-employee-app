@@ -1,4 +1,4 @@
-// Woods COGS Supabase adapter v5 — admin restricted
+// Woods COGS Supabase adapter v6 — admin restricted
 const cogsCfg=window.WOODS_CONFIG||{};
 const cogsDb=window.supabase?.createClient(cogsCfg.supabaseUrl,cogsCfg.supabaseAnonKey);
 let cogsUser=null,cogsRemoteReady=false,cogsSyncing=false,cogsSyncPending=false,cogsMetaSchemaReady=true;
@@ -10,9 +10,10 @@ function remoteShape(){return {
  addons:data.addons.map(a=>({name:a.name,selling_price:Number(a.price)||0,active:a.active!==false}))
 }}
 function legacyIngredients(rows){return rows.map(({supplier,cost_basis,last_checked,...i})=>i)}
+function localIngredient(i){return {id:i.id,name:i.name,unit:i.unit,packCost:i.pack_cost==null?null:Number(i.pack_cost),packQty:i.pack_qty==null?null:Number(i.pack_qty),active:i.active,supplier:i.supplier??null,costBasis:i.cost_basis??null,lastChecked:i.last_checked??null}}
 function localShape(ings,menu,recipes,addons){
  const recipeMap={};recipes.forEach(r=>(recipeMap[r.menu_item_id]??=[]).push({ingredientId:r.ingredient_id,qty:Number(r.quantity)}));
- return {ingredients:ings.map(i=>({id:i.id,name:i.name,unit:i.unit,packCost:i.pack_cost==null?null:Number(i.pack_cost),packQty:i.pack_qty==null?null:Number(i.pack_qty),active:i.active,supplier:i.supplier??null,costBasis:i.cost_basis??null,lastChecked:i.last_checked??null})),products:menu.map(p=>({id:p.id,name:p.name,category:p.category,price:Number(p.selling_price),archived:!p.active,recipe:recipeMap[p.id]||[]})),addons:addons.map(a=>({name:a.name,price:Number(a.selling_price),active:a.active})),categories:[...new Set([...WOODS_COGS_SEED.categories,...menu.map(p=>p.category)])],menuCleanupV1:true};
+ return {ingredients:ings.map(localIngredient),products:menu.map(p=>({id:p.id,name:p.name,category:p.category,price:Number(p.selling_price),archived:!p.active,recipe:recipeMap[p.id]||[]})),addons:addons.map(a=>({name:a.name,price:Number(a.selling_price),active:a.active})),categories:[...new Set([...WOODS_COGS_SEED.categories,...menu.map(p=>p.category)])],menuCleanupV1:true};
 }
 async function cogsLoadRemote(){
  if(!cogsDb||!cogsUser)return false;
@@ -21,6 +22,14 @@ async function cogsLoadRemote(){
  cogsMetaSchemaReady=!!(a.data.length===0||Object.prototype.hasOwnProperty.call(a.data[0],'supplier'));
  if(!a.data.length&&!b.data.length){await cogsSeedRemote();return cogsLoadRemote()}
  data=localShape(a.data,b.data,c.data,d.data);localStorage.setItem('woods-cogs-v4',JSON.stringify(data));cogsRemoteReady=true;return true;
+}
+async function cogsMergeLatestIngredients(){
+ if(!cogsDb||!cogsUser)return;
+ const q=await cogsDb.from('cogs_ingredients').select('*').eq('active',true).order('name');
+ if(q.error)throw q.error;
+ const byId=new Map(data.ingredients.map(i=>[i.id,i]));
+ (q.data||[]).forEach(row=>{const remote=localIngredient(row),local=byId.get(remote.id);if(local)Object.assign(local,remote);else data.ingredients.push(remote)});
+ localStorage.setItem('woods-cogs-v4',JSON.stringify(data));
 }
 async function upsertIngredients(rows){
  let q=await cogsDb.from('cogs_ingredients').upsert(cogsMetaSchemaReady?rows:legacyIngredients(rows));
@@ -34,12 +43,6 @@ async function cogsSeedRemote(){
  if(s.recipes.length){q=await cogsDb.from('cogs_recipes').upsert(s.recipes,{onConflict:'menu_item_id,ingredient_id'});if(q.error)throw q.error}
  if(s.addons.length){q=await cogsDb.from('cogs_addons').upsert(s.addons,{onConflict:'name'});if(q.error)throw q.error}
 }
-async function cogsDeleteMissingIngredients(localIngredients){
- const remote=await cogsDb.from('cogs_ingredients').select('id');if(remote.error)throw remote.error;
- const keep=new Set(localIngredients.map(i=>i.id));
- const stale=(remote.data||[]).map(i=>i.id).filter(id=>!keep.has(id));
- for(const id of stale){const q=await cogsDb.from('cogs_ingredients').delete().eq('id',id);if(q.error)throw q.error;}
-}
 async function cogsPushRemote(){
  if(!cogsRemoteReady||!cogsUser)return;
  if(cogsSyncing){cogsSyncPending=true;return}
@@ -50,7 +53,8 @@ async function cogsPushRemote(){
   q=await cogsDb.from('cogs_menu_items').upsert(s.menu);if(q.error)throw q.error;
   const ids=s.menu.map(x=>x.id);if(ids.length){q=await cogsDb.from('cogs_recipes').delete().in('menu_item_id',ids);if(q.error)throw q.error}
   if(s.recipes.length){q=await cogsDb.from('cogs_recipes').insert(s.recipes);if(q.error)throw q.error}
-  await cogsDeleteMissingIngredients(s.ingredients);
+  // Important: never delete remote ingredients merely because this browser has a stale local list.
+  // Explicit deletion is handled by the deleteMaster wrapper below.
   for(const a of s.addons){q=await cogsDb.from('cogs_addons').upsert(a,{onConflict:'name'});if(q.error)throw q.error}
   cogsBanner(cogsMetaSchemaReady?'Saved to Supabase':'Core COGS saved · supplier notes need one-time Supabase update',cogsMetaSchemaReady?'ok':'');
  }catch(e){console.error(e);cogsBanner('Save failed: '+(e.message||e),'error')}finally{
@@ -63,7 +67,15 @@ function installRemotePersistence(){
  const oldSave=window.save;window.save=function(){localStorage.setItem('woods-cogs-v4',JSON.stringify(data));render();cogsPushRemote()};
  const oldRecipeChange=window.recipeChange;window.recipeChange=function(...args){oldRecipeChange(...args);cogsPushRemote()};
  const oldRecipeRemove=window.recipeRemove;window.recipeRemove=function(...args){oldRecipeRemove(...args);cogsPushRemote()};
- const oldRecipeAdd=window.recipeAdd;window.recipeAdd=function(...args){oldRecipeAdd(...args);cogsPushRemote()};
+ const oldRecipeAdd=window.recipeAdd;window.recipeAdd=async function(...args){
+  try{await cogsMergeLatestIngredients()}catch(e){console.error(e);cogsBanner('Could not refresh ingredients: '+(e.message||e),'error')}
+  oldRecipeAdd(...args);cogsPushRemote();
+ };
+ const oldDeleteMaster=window.deleteMaster;window.deleteMaster=async function(...args){
+  const before=new Set(data.ingredients.map(i=>i.id));oldDeleteMaster(...args);
+  const after=new Set(data.ingredients.map(i=>i.id));const removed=[...before].filter(id=>!after.has(id));
+  for(const id of removed){const q=await cogsDb.from('cogs_ingredients').delete().eq('id',id);if(q.error){console.error(q.error);cogsBanner('Delete failed: '+q.error.message,'error');return}}
+ };
 }
 function cogsDeny(message){const root=document.getElementById('cogsRoot');if(root)root.innerHTML='<div class="cards"><article><h2>Admin access only</h2><p>'+message+'</p><p><button class="primary" onclick="location.href=\'v16.html\'">Back to Woods Team Hub</button></p></article></div>';cogsBanner('Restricted workspace','error');}
 async function cogsStart(){
