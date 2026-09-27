@@ -171,3 +171,6 @@ window.addEventListener('DOMContentLoaded',()=>{
   client.auth.onAuthStateChange(()=>setTimeout(loadProductMeta,100));
   loadProductMeta();
 });
+
+// Staffing calendar navigation and today's home summary.
+(()=>{const s=document.createElement('script');s.src='staffing-home.js?v=1';s.defer=true;document.head.appendChild(s)})();
