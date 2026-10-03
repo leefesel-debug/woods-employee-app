@@ -1,42 +1,55 @@
 # Woods Team Hub
 
-Employee app for Woods Coffee Shop, starting with the allergen matrix.
+Woods Team Hub is the mobile-first operating hub for Woods Coffee Shop. The production app is served from the `main` branch. Development and stabilisation work must be completed on a separate branch and tested before it is promoted to `main`.
 
-## Current first slice
+## Current production capabilities
 
-- Mobile-first searchable allergen matrix
-- Filters for menu category and allergen
-- Admin mode with CSV import, add, edit, archive and backup
-- Reserved navigation for Training Log, Table Bookings, Employee Handbook and COSHH
-- UK 14-allergen labels
-- Safety reminder for staff to confirm uncertain orders with a manager
-- Secure risk-assessment register with fire, health & safety and HACCP-style food-safety controls
-- Review dates, action owners, version snapshots, staff acknowledgement and print/PDF output
-- Private Forms & Templates repository with search, categories and mobile-friendly document cards
-- Admin multi-file upload, metadata editing, replacement versions and archiving
-- Searchable mobile COSHH register with hazard filters, first aid, PPE and spill response
-- Admin COSHH loading, editing, review dates, archiving and audit history
+- Shared Supabase authentication and staff sign-in
+- Self-service password recovery
+- Shared allergen register with add/edit/archive, dietary flags, specific gluten cereals, product information and audit history
+- Table bookings
+- Staff handbook
+- Training log with requirements, completion history, refresher dates and due/overdue status
+- Risk assessments with review dates, versions, actions, staff acknowledgement and print/PDF output
+- Forms & Templates repository with private file storage and version history
+- COSHH register with hazards, PPE, first aid, spill response, review dates and audit history
+- Supplier ordering with catalogues, order history and secure Woods mailbox sending
+- Key contacts, complaints and accident records
+- Administrator activity/audit log across operational modules
+- Administrator Cost of Goods tools
 
-## Data
+## Architecture
 
-Open **Admin mode** and import the exported allergen CSV. The importer accepts a product/name column, an optional category column, and either individual allergen columns marked with X/Yes/1 or a single Allergens column.
+The current user interface is `v16.html`, with core behaviour in `app-v16.js` and feature modules in:
 
-The present browser build stores imported data on the device as a safe preview. Shared staff syncing, authenticated admin access and change history are the next infrastructure step and require a shared database connection.
+- `activity-v1.js`
+- `orders-v1.js`
+- `risk-v1.js`
+- `documents-v1.js`
+- `coshh-v1.js`
+- `training-v1.js`
+- `operations-v1.js`
 
-## Run
+`config.js` contains runtime configuration plus several compatibility/enhancement hooks added during the first live iteration. One objective of V2 stabilisation is to move feature logic out of configuration and into clear feature modules without changing live behaviour.
 
-Open `index.html` directly, or enable GitHub Pages for this repository.
+Supabase is the shared system of record. SQL setup/migration files are retained in the repository, and the supplier-order Edge Function lives under `supabase/functions/send-supplier-order/`.
 
-## Risk assessment setup
+## Release rule
 
-Run `supabase-risk-assessments.sql` once in the Supabase SQL Editor. It creates the secure tables, row-level security policies, audit trail and Woods-owned starter assessments. Admins can then refine the controls in the app before approving the next version.
+**`main` = live and stable.**
 
-## Forms and templates setup
+Do not experiment directly on `main`. New work should be developed on a branch, checked against the smoke-test list in `STABILISATION.md`, and only then promoted deliberately.
 
-Run `supabase-documents.sql` once in the Supabase SQL Editor. It creates the document register, version history, audit trail, row-level security and a private 10 MB Supabase Storage bucket. Signed-in staff can open only the current file for an active document; admins can upload, replace, edit or archive documents.
+The current production release is Build 39. `index.html`, `manifest.webmanifest`, `version.json`, `v16.html` and the JavaScript asset query strings currently participate in launch/version behaviour. Treat changes to those files as release changes rather than routine feature changes.
 
-The bulk uploader recognises the supplied FOH, kitchen and toilet checklist filenames and assigns their titles, categories and frequencies automatically.
+## V2 stabilisation
 
-## COSHH setup
+The `v2-stabilisation` branch is being used to simplify the repository and establish a safer release process before the next major functionality is added. See `STABILISATION.md` for scope, risks and test gates.
 
-Run `supabase-coshh.sql` once in the Supabase SQL Editor. It creates the COSHH register, review fields, audit history and row-level security. Admins can then select the supplied `COSHH.csv` in the app and use **Import COSHH CSV** to load its 15 products directly into private Supabase storage.
+## Supabase setup files
+
+The repository contains setup scripts for activity, bookings, COGS, COSHH, documents, handbook, operations, orders, risk assessments and training. These scripts should not be rerun against production unless the change being applied is understood and deliberately required.
+
+## Local / Pages use
+
+The production entry point is `index.html`, which launches the current application. GitHub history is the archive for previous releases; old numbered HTML/JavaScript copies do not need to remain in the working tree once V2 clean-up is complete.

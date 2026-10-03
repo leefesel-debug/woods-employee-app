@@ -1,0 +1,25 @@
+name: Woods V2 stabilisation checks
+
+on:
+  push:
+    branches:
+      - v2-stabilisation
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  static-release-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate release structure
+        run: node scripts/validate-release.mjs
