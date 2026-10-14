@@ -15,7 +15,7 @@ label{display:block;font-weight:700;margin:10px 0 4px}input[type=text],input[typ
 </style></head>
 <body><header><strong>🌿 Woods · Allergen Scanner <small>(PILOT)</small></strong><a href="v16.html">← Team Hub</a></header>
 <main><div class="hero"><h1>Scan a product label</h1><p>Photograph the ingredients, check the extracted allergens, and submit for approval. Existing products can be rescanned and compared.</p></div>
-<div class="warning"><strong>Food safety:</strong> Scanning is an aid, not an allergen verification. Check the original packaging, supplier details, and kitchen cross-contact risks. No scan changes the live matrix until an admin approves it. “May contain” is kept separate from ingredients.</div>
+<div class="warning"><strong>Food safety:</strong> Scanning is an aid, not an allergen verification. Check the original packaging, supplier details, and kitchen cross-contact risks. Pilot scans and approvals do not change the live matrix. Production updates will only be enabled after testing and separate sign-off. “May contain” is kept separate from ingredients.</div>
 <section class="card"><h2>1 · Choose product</h2><div id="authStatus" class="status">Checking sign-in…</div>
 <label for="productSelect">New or existing product</label><select id="productSelect"><option value="">New product</option></select>
 <div class="two"><div><label for="productName">Product name</label><input id="productName" type="text" maxlength="200" placeholder="e.g. Aubrey Allen sausages"></div><div><label for="category">Category</label><input id="category" type="text" placeholder="e.g. Ingredients"></div></div></section>
@@ -34,7 +34,7 @@ label{display:block;font-weight:700;margin:10px 0 4px}input[type=text],input[typ
 <div class="actions"><button id="submit" class="primary">Submit for admin approval</button></div>
 <div id="submitStatus" class="status"></div>
 </section>
-<section class="card"><h2>4 · Review queue</h2><p class="muted">Staff can see their own submissions. Admins can inspect pending scans and approve changes to the live allergen matrix.</p><button id="refresh">Refresh queue</button><div id="queue"></div></section>
+<section class="card"><h2>4 · Review queue</h2><p class="muted">Staff can see their own submissions. Admins can inspect pending scans and approve pilot proposals without changing the live allergen matrix.</p><button id="refresh">Refresh queue</button><div id="queue"></div></section>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js?v=7"></script>
