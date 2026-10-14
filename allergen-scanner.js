@@ -89,9 +89,9 @@ function reviewDraft(id){
  checkGroup('checks',d.contains_allergens||[]);
  checkGroup('mayChecks',d.may_contain_allergens||[]);
  $('confirm').checked=false;compare();
- $('submit').textContent='Approve and update matrix';
+ $('submit').textContent='Approve pilot review (no live changes)';
  $('submit').scrollIntoView({behavior:'smooth',block:'center'});
- showStatus('submitStatus','Admin review: verify the packaging and all changes before approving. For new products, dietary status is NOT verified.');
+ showStatus('submitStatus','Pilot admin review: verify packaging and any proposed changes. This does NOT change live products. Dietary status is not assessed.');
 }
 function clearScan(){
  activeDraft=null;$('productSelect').value='';$('productName').value='';$('category').value='';$('rawText').value='';$('reviewNotes').value='';$('photo').value='';$('confirm').checked=false;
@@ -132,19 +132,18 @@ async function submit(){
  try{
   if(activeDraft&&admin){
    const d=drafts.find(x=>x.id===activeDraft);if(!d||d.status!=='pending')throw new Error('This submission is no longer pending.');
-   if(!confirm('Publish these checked allergens to the LIVE matrix for '+name+'? This action is audited.'))return;
-   let notes=p?.notes||'';
-   notes=notes.split(' · ').filter(x=>!/^Label precaution \(scan\):|^Label scan reviewed:/i.test(x)).join(' · ');
-   notes+=(notes?' · ':'')+'Label precaution (scan): '+(may.join(', ')||'none stated in captured text — check original label');
-   notes+=' · Label scan reviewed: '+new Date().toLocaleDateString('en-GB');
-   if(!p)notes+=' · Dietary suitability not assessed by scanner';
-   const value={name,category:$('category').value.trim(),allergens:contains,notes,updated_by:user.id};
-   const saved=p?await db.from('products').update(value).eq('id',p.id):await db.from('products').insert({...value,created_by:user.id});
-   if(saved.error)throw saved.error;
-   const q=await db.from('allergen_scan_drafts').update({status:'approved',reviewed_by:user.id,reviewed_at:new Date().toISOString(),review_notes:$('reviewNotes').value.trim()}).eq('id',activeDraft).eq('status','pending');
-   if(q.error)throw new Error('Product saved but queue could not be marked approved: '+q.error.message);
-   showStatus('submitStatus','Approved — the matrix was updated and the product audit history recorded the change.');
-   clearScan();await loadProducts();await loadQueue();showStatus('submitStatus','Approved and published to the matrix ✓');
+   if(!confirm('Approve this PILOT scan for '+name+'? No live matrix records will be changed.'))return;
+   // Pilot is deliberately isolated from production product records.
+   // Staging and live currently share Supabase: never update public.products here.
+   const q=await db.from('allergen_scan_drafts').update({
+     status:'approved',reviewed_by:user.id,reviewed_at:new Date().toISOString(),
+     product_name:name,category:$('category').value.trim(),
+     contains_allergens:contains,may_contain_allergens:may,
+     raw_label_text:text.slice(0,15000),review_notes:$('reviewNotes').value.trim()
+   }).eq('id',activeDraft).eq('status','pending');
+   if(q.error)throw q.error;
+   clearScan();await loadQueue();
+   showStatus('submitStatus','Pilot review approved ✓ The live allergen matrix has NOT been changed.');
   }else{
    const row={product_id:p?.id||null,product_name:name,category:$('category').value.trim(),contains_allergens:contains,may_contain_allergens:may,raw_label_text:text.slice(0,15000),review_notes:$('reviewNotes').value.trim(),submitted_by:user.id};
    const q=await db.from('allergen_scan_drafts').insert(row);
