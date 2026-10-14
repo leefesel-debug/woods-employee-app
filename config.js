@@ -174,3 +174,14 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 // Staffing calendar navigation and today's home summary.
 (()=>{const s=document.createElement('script');s.src='staffing-home.js?v=1';s.defer=true;document.head.appendChild(s)})();
+
+
+// Scanner pilot link: staging only. Production files remain untouched.
+window.addEventListener('DOMContentLoaded',()=>{
+ const view=document.getElementById('allergenView');
+ if(!view||document.getElementById('allergenScannerPilotNav'))return;
+ const panel=document.createElement('div');panel.id='allergenScannerPilotNav';
+ panel.style.cssText='background:#edf1ed;border:1px solid #d8dfd8;border-radius:12px;padding:13px 15px;margin:12px 0';
+ panel.innerHTML='<strong>📷 Allergen scanner · Pilot</strong><p style="margin:5px 0 10px">Scan a new product or compare an existing label. All results require review and pilot approvals never alter live allergen records.</p><a href="allergen-scanner.html" style="display:inline-block;background:#5b725d;color:#fff;text-decoration:none;font-weight:700;border-radius:9px;padding:10px 14px">Open scanner pilot →</a>';
+ view.querySelector('.notice')?.after(panel);
+});
