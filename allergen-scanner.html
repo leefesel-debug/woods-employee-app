@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#5b725d">
+<title>Woods · Allergen Scanner Pilot</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--green:#5b725d;--ink:#263d2c;--cream:#f8f5ed;--line:#d8dfd8;--muted:#667369;--red:#a72721}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:14px/1.5 Poppins,system-ui,sans-serif}
+header{background:var(--green);color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}header a{color:white;font-weight:700;text-decoration:none;border:1px solid #ffffff77;padding:8px 10px;border-radius:9px}
+main{max-width:850px;margin:0 auto;padding:16px 12px 50px}.hero{background:linear-gradient(120deg,#314b37,#5b725d);color:white;padding:22px;border-radius:17px}.hero h1{font-size:24px;margin:0}.hero p{margin:6px 0 0}
+.card{background:white;border:1px solid var(--line);border-radius:15px;padding:17px;margin-top:14px;box-shadow:0 4px 18px #263d2c0d}
+h2{font-size:17px;margin:0 0 10px}p{margin:6px 0 12px}.muted{color:var(--muted)}.warning{background:#fff6dc;border-left:4px solid #d5a82e;padding:12px;border-radius:9px;margin:12px 0}.danger{background:#fff0ed;border-left:4px solid var(--red);padding:10px;border-radius:9px}
+label{display:block;font-weight:700;margin:10px 0 4px}input[type=text],input[type=file],select,textarea{width:100%;padding:10px;border:1px solid #becbbf;border-radius:9px;font:inherit;background:white}textarea{min-height:125px}button{font:inherit;cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:11px 13px;background:#fff;color:var(--ink);font-weight:700;min-height:43px}button.primary{background:var(--green);color:white;border-color:var(--green)}button:disabled{opacity:.5;cursor:not-allowed}.actions{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.actions button{flex:1}.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.checks label{margin:0;border:1px solid var(--line);border-radius:9px;padding:8px;display:flex;gap:8px;align-items:center;font-size:12px}.checks input{accent-color:var(--green);width:17px;height:17px;flex-shrink:0}
+.chip{display:inline-block;padding:4px 8px;border-radius:99px;background:#edf2ec;margin:3px;font-size:12px}.chip.warn{background:#fff1d9}.small{font-size:12px}.status{padding:9px 0;color:var(--muted)}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.draft{border:1px solid var(--line);border-radius:11px;padding:12px;margin:9px 0}.draft strong{display:block}.draft button{margin-top:8px}.hidden,[hidden]{display:none!important}hr{border:0;border-top:1px solid var(--line);margin:15px 0}
+@media(max-width:580px){.two,.checks{grid-template-columns:1fr}.hero h1{font-size:21px}header{font-size:13px}}
+</style></head>
+<body><header><strong>🌿 Woods · Allergen Scanner <small>(PILOT)</small></strong><a href="v16.html">← Team Hub</a></header>
+<main><div class="hero"><h1>Scan a product label</h1><p>Photograph the ingredients, check the extracted allergens, and submit for approval. Existing products can be rescanned and compared.</p></div>
+<div class="warning"><strong>Food safety:</strong> Scanning is an aid, not an allergen verification. Check the original packaging, supplier details, and kitchen cross-contact risks. No scan changes the live matrix until an admin approves it. “May contain” is kept separate from ingredients.</div>
+<section class="card"><h2>1 · Choose product</h2><div id="authStatus" class="status">Checking sign-in…</div>
+<label for="productSelect">New or existing product</label><select id="productSelect"><option value="">New product</option></select>
+<div class="two"><div><label for="productName">Product name</label><input id="productName" type="text" maxlength="200" placeholder="e.g. Aubrey Allen sausages"></div><div><label for="category">Category</label><input id="category" type="text" placeholder="e.g. Ingredients"></div></div></section>
+<section class="card"><h2>2 · Photograph ingredients</h2><p class="muted">Use a sharp, well-lit picture of the full ingredients list and any “may contain” statement. On most phones, tapping below opens the camera.</p>
+<input id="photo" type="file" accept="image/*" capture="environment" aria-label="Take or choose a label photo">
+<div class="actions"><button id="scan" class="primary">Read label</button><button id="reset">Clear scan</button></div>
+<div id="scanStatus" class="status">Images are read on your device for this pilot; no label photo is uploaded.</div>
+<label for="rawText">Text extracted from label — correct any reading errors</label><textarea id="rawText" placeholder="Ingredients: wheat flour, milk powder... May contain nuts."></textarea>
+<button id="analyse">Identify allergens from text</button>
+</section>
+<section class="card"><h2>3 · Check allergen findings</h2><p class="muted">Tick only allergens confirmed in the ingredients. Untick false matches and tick anything missed. An empty scan is <strong>not</strong> proof of allergen-free status.</p>
+<div id="checks" class="checks"></div><h2 style="margin-top:18px">Precautionary “may contain” warnings</h2><div id="mayChecks" class="checks"></div>
+<div id="comparison" class="warning">Choose an existing product to compare the proposed changes.</div>
+<label for="reviewNotes">Reviewer notes / uncertainties</label><textarea id="reviewNotes" placeholder="e.g. Label is blurred near the end; check with supplier"></textarea>
+<label style="display:flex;align-items:flex-start;gap:8px"><input id="confirm" type="checkbox" style="margin-top:4px"> I have checked the original packaging and corrected the results. I understand that recipe and cross-contact risks require separate checks.</label>
+<div class="actions"><button id="submit" class="primary">Submit for admin approval</button></div>
+<div id="submitStatus" class="status"></div>
+</section>
+<section class="card"><h2>4 · Review queue</h2><p class="muted">Staff can see their own submissions. Admins can inspect pending scans and approve changes to the live allergen matrix.</p><button id="refresh">Refresh queue</button><div id="queue"></div></section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js?v=7"></script>
+<script src="allergen-scanner.js?v=1"></script></body></html>
