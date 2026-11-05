@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="woods-app-icon-v2-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Woods Hub">
 <script>
-(()=>{const current='39';async function checkVersion(){try{const response=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const latest=await response.json();if(String(latest.build)!==current&&latest.url)location.replace(latest.url+'?build='+encodeURIComponent(latest.build)+'&refresh='+Date.now())}catch{}}window.addEventListener('pageshow',checkVersion);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()})})();
+(()=>{const current='41';let checking=false;async function checkVersion(){if(checking)return;checking=true;try{const response=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!response.ok)return;const latest=await response.json();const latestBuild=String(latest.build||'');const openedBuild=new URLSearchParams(location.search).get('build');if(latestBuild&&latestBuild!==current&&latest.url&&openedBuild!==latestBuild){location.replace(latest.url+'?build='+encodeURIComponent(latestBuild))}}catch{}finally{checking=false}}window.addEventListener('pageshow',checkVersion);document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()})})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
