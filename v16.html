@@ -106,7 +106,7 @@ dialog{border:0;border-radius:18px;padding:0;max-width:560px;width:calc(100% - 2
     <div class="field"><label for="bookingTime">Time</label><input id="bookingTime" type="time" step="900" required></div>
     <div class="field"><label for="bookingContact">Contact details</label><input id="bookingContact" required placeholder="Phone number or email" autocomplete="tel"></div>
     <div class="field"><label for="bookingSize">Number of people</label><input id="bookingSize" type="number" min="1" max="50" inputmode="numeric" required></div>
-    <div class="field"><label for="bookingSpecial">Special requests <span style="font-weight:400">(optional)</span></label><textarea id="bookingSpecial" maxlength="1000" rows="3" placeholder="e.g. High chair, birthday, accessible seating, dietary note"></textarea></div><div class="booking-form-actions"><button class="btn primary" id="bookingSubmit" type="submit">Add booking</button><button class="btn" id="bookingCancelEdit" type="button" onclick="cancelBookingEdit()" hidden>Cancel editing</button></div>
+    <div class="field"><label for="bookingSpecial">Special requests <span style="font-weight:400">(optional)</span></label><textarea id="bookingSpecial" maxlength="1000" rows="3" placeholder="e.g. High chair, birthday, accessible seating, dietary note"></textarea><small id="bookingSpecialHelp" class="category" hidden>Special requests are awaiting the one-time Supabase database update. Other booking features remain available.</small></div><div class="booking-form-actions"><button class="btn primary" id="bookingSubmit" type="submit">Add booking</button><button class="btn" id="bookingCancelEdit" type="button" onclick="cancelBookingEdit()" hidden>Cancel editing</button></div>
    </form>
   </section>
   <section>
