@@ -69,9 +69,20 @@ create policy "Signed-in staff can read active products"
 on public.products for select to authenticated
 using (active = true or public.is_admin());
 
-create policy "Admins can create products"
+create policy "Staff can create products"
 on public.products for insert to authenticated
-with check (public.is_admin());
+with check (
+  public.is_admin()
+  or (
+    active = true
+    and created_by = (select auth.uid())
+    and updated_by = (select auth.uid())
+    and exists (
+      select 1 from public.profiles
+      where id = (select auth.uid()) and role = 'staff'
+    )
+  )
+);
 
 create policy "Admins can update products"
 on public.products for update to authenticated
